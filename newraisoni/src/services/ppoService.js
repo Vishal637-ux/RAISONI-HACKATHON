@@ -6,11 +6,25 @@ export const ppoService = {
    * @param {object} ppoData - { internshipId, studentId, companyId, status, designation, ctc }
    */
   async recordPPO(ppoData) {
-    if (!ppoData || !ppoData.internshipId || !ppoData.studentId || !ppoData.companyId) {
-      throw new Error('Internship ID, Student ID, and Company ID are required to record a PPO.');
+    if (!ppoData || !ppoData.internshipId || !ppoData.studentId) {
+      throw new Error('Internship ID and Student ID are required to record a PPO.');
     }
 
-    const { internshipId, studentId, companyId, status = 'Offered', designation, ctc } = ppoData;
+    let { internshipId, studentId, companyId, status = 'Offered', designation, ctc } = ppoData;
+
+    if (!companyId) {
+      const { data: intRec } = await supabase
+        .from('internships')
+        .select('company_id')
+        .eq('id', internshipId)
+        .maybeSingle();
+
+      companyId = intRec?.company_id;
+    }
+
+    if (!companyId) {
+      throw new Error('Company ID could not be resolved for this internship.');
+    }
 
     const validStatuses = ['Offered', 'Accepted', 'Rejected', 'Pending'];
     if (!validStatuses.includes(status)) {

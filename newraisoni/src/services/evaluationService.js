@@ -337,7 +337,7 @@ export const evaluationService = {
 
       const { data: internships } = await supabase
         .from('internships')
-        .select('id, student_id, internship_title, status, users:student_id(full_name, email)')
+        .select('id, student_id, company_id, internship_title, status, users:student_id(full_name, email)')
         .eq('company_id', mentor.company_id);
 
       if (!internships || internships.length === 0) return [];
