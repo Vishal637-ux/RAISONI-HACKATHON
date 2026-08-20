@@ -330,10 +330,6 @@ export const certificateVerificationService = {
         .eq('document_hash', documentHash)
         .maybeSingle();
 
-      if (existing) {
-        throw new Error('Duplicate SHA-256 document hash found in verification registry.');
-      }
-
       // Extract document content if file data provided
       let docExtraction = extractedData;
       if (!docExtraction && fileData) {
@@ -366,9 +362,21 @@ export const certificateVerificationService = {
         extracted_data: docExtraction || { fileName, documentHash },
         evidence_breakdown: evidencePayload,
         human_review_status: 'UNREVIEWED',
-        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
+
+      if (existing) {
+        const { data: updated, error: upErr } = await supabase
+          .from('external_certificates')
+          .update(record)
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (!upErr && updated) return updated;
+      }
+
+      record.created_at = new Date().toISOString();
 
       const { data: inserted, error } = await supabase
         .from('external_certificates')
@@ -376,10 +384,23 @@ export const certificateVerificationService = {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505' || error.message?.includes('unique constraint') || error.message?.includes('duplicate key')) {
+          const { data: fallbackUpdated } = await supabase
+            .from('external_certificates')
+            .update(record)
+            .eq('document_hash', documentHash)
+            .select()
+            .maybeSingle();
+
+          if (fallbackUpdated) return fallbackUpdated;
+          throw new Error('This certificate document has already been registered for AI verification.');
+        }
+        throw error;
+      }
       return inserted;
     } catch (err) {
-      if (!err.message?.includes('Duplicate SHA-256')) {
+      if (!err.message?.includes('registered for AI verification')) {
         console.error('certificateVerificationService.submitExternalCertificate error:', err.message || err);
       }
       throw err;
