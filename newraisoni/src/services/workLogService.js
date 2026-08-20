@@ -33,8 +33,9 @@ export const workLogService = {
         throw new Error('Unauthorized: Student does not match internship record.');
       }
 
-      if (internship.status !== 'ACTIVE') {
-        throw new Error(`Cannot submit work log for non-ACTIVE internship (status: '${internship.status}').`);
+      const allowedStatuses = ['ACTIVE', 'TPO_VERIFIED', 'FACULTY_ASSIGNED'];
+      if (!allowedStatuses.includes(String(internship.status).toUpperCase())) {
+        throw new Error(`Cannot submit work log for internship in '${internship.status}' status.`);
       }
 
       // 2. Insert into public.work_logs
