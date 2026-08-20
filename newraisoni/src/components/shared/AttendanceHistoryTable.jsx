@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, CheckCircle2, ShieldAlert, Compass } from 'lucide-react';
+import { Calendar, CheckCircle2, ShieldAlert, Compass, Clock } from 'lucide-react';
 
 export const AttendanceHistoryTable = ({ logs = [], role = 'student', loading = false }) => {
   if (loading) {
@@ -52,6 +52,8 @@ export const AttendanceHistoryTable = ({ logs = [], role = 'student', loading = 
               {!isStudent && <th className="py-3.5 px-4">Department</th>}
               {!isStudent && <th className="py-3.5 px-4">Internship</th>}
               {(isHod || isTpoOrAdmin) && <th className="py-3.5 px-4">Company</th>}
+              <th className="py-3.5 px-4">Check-In Time</th>
+              <th className="py-3.5 px-4">Check-Out Time</th>
               <th className="py-3.5 px-4">Geofence Verdict</th>
               <th className="py-3.5 px-4">Distance</th>
               <th className="py-3.5 px-4">Status</th>
@@ -74,6 +76,17 @@ export const AttendanceHistoryTable = ({ logs = [], role = 'student', loading = 
               const deptName = department.department_name || 'N/A';
               const compName = company.company_name || 'N/A';
               const title = internship.internship_title || 'Internship';
+
+              // Format Check-In Time
+              const checkInTime = log.created_at
+                ? new Date(log.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+                : log.check_in_time || '09:00 AM';
+
+              // Format Check-Out Time (from DB, localStorage, or default)
+              const savedCheckout = typeof localStorage !== 'undefined'
+                ? localStorage.getItem(`checkout_${log.internship_id || internship.id}_${log.attendance_date}`)
+                : null;
+              const checkOutTime = log.check_out_time || savedCheckout || '05:00 PM';
 
               return (
                 <tr key={log.id} className="hover:bg-[#F8FAF9] transition-colors">
@@ -117,6 +130,22 @@ export const AttendanceHistoryTable = ({ logs = [], role = 'student', loading = 
                       {compName}
                     </td>
                   )}
+
+                  {/* Check-In Time */}
+                  <td className="py-3.5 px-4 font-bold text-[#1F6B32]">
+                    <span className="inline-flex items-center gap-1 bg-[#EAF4EC] px-2 py-0.5 rounded-md border border-[#C5E3CC]">
+                      <Clock className="w-3 h-3 text-[#2F8F46]" />
+                      {checkInTime}
+                    </span>
+                  </td>
+
+                  {/* Check-Out Time */}
+                  <td className="py-3.5 px-4 font-bold text-[#1F6B32]">
+                    <span className="inline-flex items-center gap-1 bg-[#EAF4EC] px-2 py-0.5 rounded-md border border-[#C5E3CC]">
+                      <Clock className="w-3 h-3 text-[#2F8F46]" />
+                      {checkOutTime}
+                    </span>
+                  </td>
 
                   {/* Geofence Verdict */}
                   <td className="py-3.5 px-4">
