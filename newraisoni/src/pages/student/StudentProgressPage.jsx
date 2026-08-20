@@ -103,7 +103,7 @@ export const StudentProgressPage = () => {
             <ProgressSummaryCard progress={currentSnapshot} title={`${activeTab} Progress Snapshot`} />
 
             {/* Performance Trend Chart */}
-            <ProgressChart history={activeHistory} title={`${activeTab} Progress Score Trend`} />
+            <ProgressChart history={activeHistory} title={`${activeTab} Progress Score Trend`} periodType={activeTab} />
           </div>
         )}
       </div>
