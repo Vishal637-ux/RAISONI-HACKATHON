@@ -176,6 +176,59 @@ export const taskService = {
   },
 
   /**
+   * Fetch tasks created/assigned for faculty mentor's mentees
+   * @param {string} facultyUserId - Authenticated faculty mentor user ID
+   */
+  async getFacultyTasks(facultyUserId) {
+    if (!facultyUserId) return [];
+    try {
+      const { data: mentor } = await supabase
+        .from('faculty_mentors')
+        .select('id')
+        .eq('user_id', facultyUserId)
+        .maybeSingle();
+
+      if (!mentor?.id) return [];
+
+      const { data: internships } = await supabase
+        .from('internships')
+        .select('id, student_id, internship_title, users:student_id(full_name, email)')
+        .eq('faculty_id', mentor.id);
+
+      if (!internships || internships.length === 0) return [];
+
+      const internshipIds = internships.map((i) => i.id);
+      const internshipMap = new Map(internships.map((i) => [i.id, i]));
+
+      const { data: tasks, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .in('internship_id', internshipIds)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (!tasks || tasks.length === 0) return [];
+
+      const taskIds = tasks.map((t) => t.id);
+      const { data: submissions } = await supabase
+        .from('task_submissions')
+        .select('*')
+        .in('task_id', taskIds);
+
+      const subMap = new Map((submissions || []).map((s) => [s.task_id, s]));
+
+      return tasks.map((task) => ({
+        ...task,
+        internship: internshipMap.get(task.internship_id),
+        submission: subMap.get(task.id) || null,
+      }));
+    } catch (err) {
+      console.error('taskService.getFacultyTasks error:', err.message || err);
+      return [];
+    }
+  },
+
+  /**
    * Submit task deliverable file/URL for a student
    * @param {string} studentUserId - Authenticated student user UUID
    * @param {string} taskId - Assigned task UUID
