@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.output/
+
+# Environment and Secret Files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# IDE and OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Scratch & Logs
+*.log
+scratch/
