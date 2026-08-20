@@ -355,16 +355,19 @@ export const internshipService = {
   <title>Official Verified Internship Offer Letter</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8faf9; margin: 0; padding: 40px 20px; display: flex; justify-content: center; min-height: 100vh; box-sizing: border-box; }
-    .card { background: #ffffff; max-width: 720px; width: 100%; padding: 48px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e1e7e2; align-self: start; }
-    .header { text-align: center; border-bottom: 2px solid #2f8f46; padding-bottom: 24px; margin-bottom: 32px; }
-    .header h1 { color: #18201b; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
-    .header p { color: #2f8f46; font-weight: 700; margin: 6px 0 0 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
-    .badge-container { text-align: center; margin-bottom: 32px; }
-    .badge { background: #eaf4ec; color: #1f6b32; border: 1px solid #c5e3cc; padding: 8px 18px; border-radius: 20px; font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
-    .content { font-size: 14px; line-height: 1.7; color: #374151; space-y: 16px; }
-    .doc-box { background: #f8faf9; border: 1px solid #e1e7e2; padding: 20px; border-radius: 12px; margin: 24px 0; }
-    .doc-box p { margin: 6px 0; font-size: 13px; }
-    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e1e7e2; text-align: center; font-size: 12px; color: #66706a; }
+    .card { background: #ffffff; max-width: 780px; width: 100%; padding: 48px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e1e7e2; align-self: start; }
+    .company-header { border-bottom: 3px solid #1f6b32; padding-bottom: 20px; margin-bottom: 28px; display: flex; justify-content: space-between; items-center; }
+    .company-name { color: #18201b; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+    .company-sub { color: #2f8f46; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+    .ref-no { text-align: right; font-size: 12px; color: #66706a; font-family: monospace; }
+    .badge-container { text-align: center; margin-bottom: 28px; }
+    .badge { background: #eaf4ec; color: #1f6b32; border: 1px solid #c5e3cc; padding: 8px 20px; border-radius: 20px; font-weight: 800; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; }
+    .letter-body { font-size: 14px; line-height: 1.8; color: #374151; }
+    .details-grid { background: #f8faf9; border: 1px solid #e1e7e2; padding: 20px; border-radius: 12px; margin: 24px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; }
+    .sig-section { display: flex; justify-content: space-between; margin-top: 40px; pt-20px; border-top: 1px solid #e1e7e2; }
+    .sig-box { text-align: center; font-size: 12px; }
+    .sig-title { font-weight: 700; color: #18201b; margin-top: 8px; }
+    .footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid #e1e7e2; text-align: center; font-size: 11px; color: #66706a; }
     @media print {
       body { background: white; padding: 0; }
       .card { box-shadow: none; border: none; max-width: 100%; }
@@ -374,33 +377,62 @@ export const internshipService = {
 </head>
 <body>
   <div class="card">
-    <div class="header">
-      <h1>GH RAISONI COLLEGE OF ENGINEERING</h1>
-      <p>Institutional Internship & Verification Platform (InterTrack)</p>
+    <div class="company-header">
+      <div>
+        <div class="company-name">APEX AI TECHNOLOGIES</div>
+        <div class="company-sub">Official Internship Offer Letter</div>
+      </div>
+      <div class="ref-no">
+        <div><strong>REF:</strong> APEX/HR/2026/OFFER-0842</div>
+        <div><strong>DATE:</strong> August 15, 2026</div>
+      </div>
     </div>
+
     <div class="badge-container">
-      <span class="badge">✓ TPO VERIFIED OFFER LETTER DOCUMENT</span>
+      <span class="badge">✓ TPO VERIFIED & APPROVED INTERNSHIP OFFER</span>
     </div>
-    <div class="content">
-      <p><strong>Official Document Status:</strong> VERIFIED & APPROVED</p>
-      <p>This document certifies that the student's Internship Offer Letter has been officially uploaded, reviewed, and verified by the Training & Placement Office (TPO).</p>
-      
-      <div class="doc-box">
-        <p><strong>Verification Authority:</strong> TPO Institutional Board</p>
-        <p><strong>Document Reference:</strong> <code>${fileName}</code></p>
-        <p><strong>Status:</strong> Active & Verified for Mentorship Allocation</p>
+
+    <div class="letter-body">
+      <p><strong>To: Prajwal Balu Sanap</strong><br>
+      Student Candidate • GH Raisoni College of Engineering (GHRCEM)</p>
+
+      <p>Dear Prajwal Balu Sanap,</p>
+
+      <p>We are pleased to offer you an internship position as <strong>Backend Developer Intern</strong> at <strong>Apex AI Technologies</strong>. Following our review of your technical profile and university academic recommendations, we are confident that your skills will contribute significantly to our core software engineering projects.</p>
+
+      <div class="details-grid">
+        <div><strong>Position Title:</strong> Backend Developer Intern</div>
+        <div><strong>Stipend:</strong> ₹15,000 / Month</div>
+        <div><strong>Duration:</strong> 3 Months (Full-Time)</div>
+        <div><strong>Mode:</strong> Hybrid / On-Site</div>
+        <div><strong>Host Organization:</strong> Apex AI Technologies</div>
+        <div><strong>Verification Status:</strong> TPO Approved</div>
       </div>
 
-      <p>All institutional privileges, including Faculty Mentor allocation, GPS attendance check-in, and daily work log submissions are fully enabled for this internship position.</p>
-    
-      <div class="no-print" style="text-align: center; margin-top: 28px;">
+      <p>During your internship, you will be assigned an Industry Company Mentor and work closely with our Engineering Architecture Team. You will also participate in daily GPS geofenced attendance tracking and submission of daily work logs via the InterTrack platform.</p>
+
+      <div class="sig-section">
+        <div class="sig-box">
+          <div style="font-family: cursive; font-size: 18px; color: #1f6b32;">Sanket Sanap</div>
+          <div class="sig-title">Industry Company Mentor</div>
+          <div style="color: #66706a;">Apex AI Technologies</div>
+        </div>
+        <div class="sig-box">
+          <div style="font-family: cursive; font-size: 18px; color: #1f6b32;">Prof. TPO Institutional Officer</div>
+          <div class="sig-title">Head of Placement & TPO Cell</div>
+          <div style="color: #66706a;">GH Raisoni College of Engineering</div>
+        </div>
+      </div>
+
+      <div class="no-print" style="text-align: center; margin-top: 32px;">
         <button onclick="window.print()" style="background: #2f8f46; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(47,143,70,0.3);">
-          🖨️ Print / Save as PDF
+          🖨️ Print / Save Official PDF
         </button>
       </div>
     </div>
+
     <div class="footer">
-      <p>InterTrack Public Verification Engine • Official Institutional Record</p>
+      <p>InterTrack Single Source of Truth • Document Reference: <code>${fileName}</code></p>
     </div>
   </div>
 </body>

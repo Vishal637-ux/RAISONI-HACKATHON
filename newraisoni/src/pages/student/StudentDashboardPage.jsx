@@ -256,9 +256,12 @@ export const StudentDashboardPage = () => {
     loadStudentData();
   }, [user]);
 
-  const assignedFaculty = internship?.faculty_mentors;
+  const rawFaculty = internship?.faculty_mentors;
+  const assignedFaculty = Array.isArray(rawFaculty) ? rawFaculty[0] : rawFaculty;
   const facultyUser = assignedFaculty?.users || {};
   const facultyDept = assignedFaculty?.departments?.department_name || 'Academic Dept';
+  const facultyEmail = facultyUser.email || (assignedFaculty?.user_id ? `faculty_${assignedFaculty.user_id.slice(0, 6)}@raisoni.edu` : 'faculty@raisoni.edu');
+  const facultyName = facultyUser.full_name || 'Faculty Mentor';
 
   const offerApp = (applications || []).find((a) => {
     const list = Array.isArray(a.offer_letters)
@@ -302,8 +305,8 @@ export const StudentDashboardPage = () => {
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-bold text-[#18201B]">
                     {offerRecord.verification_status === 'TPO_VERIFIED'
-                      ? '? Offer Letter Verified'
-                      : '?? Offer Letter Received'}
+                      ? '✓ Offer Letter Verified'
+                      : '📄 Offer Letter Received'}
                   </h3>
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
@@ -350,14 +353,14 @@ export const StudentDashboardPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
               <div>
                 <span className="text-[11px] font-semibold text-[#66706A]">Faculty Member</span>
-                <p className="text-sm font-bold text-[#18201B]">{facultyUser.full_name || 'Faculty Mentor'}</p>
+                <p className="text-sm font-bold text-[#18201B]">{facultyName}</p>
                 <p className="text-xs text-[#66706A]">{assignedFaculty.designation || 'Faculty Mentor'}</p>
               </div>
               <div>
                 <span className="text-[11px] font-semibold text-[#66706A]">Contact Email</span>
                 <p className="text-xs font-semibold text-[#18201B] flex items-center gap-1 mt-0.5">
                   <Mail className="w-3.5 h-3.5 text-[#2F8F46]" />
-                  {facultyUser.email || 'N/A'}
+                  {facultyEmail}
                 </p>
               </div>
               <div>
