@@ -281,6 +281,22 @@ export const AdminDashboardPage = () => {
     }
   };
 
+  const [updatingCompanyId, setUpdatingCompanyId] = useState(null);
+
+  const handleCompanyStatusToggle = async (companyId, currentStatus) => {
+    const newStatus = currentStatus === 'SUSPENDED' ? 'APPROVED' : 'SUSPENDED';
+    try {
+      setUpdatingCompanyId(companyId);
+      await adminService.updateCompanyStatus(companyId, newStatus, user?.id);
+      setSuccessMsg(`Company status updated to ${newStatus}.`);
+      await fetchAdminData();
+    } catch (err) {
+      setError(err.message || 'Failed to update company status.');
+    } finally {
+      setUpdatingCompanyId(null);
+    }
+  };
+
   const generateCompanyInviteLink = (comp) => {
     const origin = window.location.origin;
     const inviteUrl = `${origin}/register/company-mentor?company_id=${comp.id}&company_name=${encodeURIComponent(comp.company_name)}`;
@@ -918,10 +934,27 @@ export const AdminDashboardPage = () => {
                         </td>
 
                         <td className="py-3 px-4">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EAF4EC] text-[#1F6B32] border border-[#C5E3CC]">
-                            <CheckCircle2 className="w-3 h-3 text-[#2F8F46]" />
-                            {c.status || 'APPROVED'}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                              (c.status || 'APPROVED') === 'APPROVED'
+                                ? 'bg-[#EAF4EC] text-[#1F6B32] border border-[#C5E3CC]'
+                                : 'bg-[#FEF2F2] text-[#DC2626] border border-[#FCA5A5]'
+                            }`}>
+                              <CheckCircle2 className="w-3 h-3 text-[#2F8F46]" />
+                              {c.status || 'APPROVED'}
+                            </span>
+                            <button
+                              onClick={() => handleCompanyStatusToggle(c.id, c.status || 'APPROVED')}
+                              disabled={updatingCompanyId === c.id}
+                              className={`px-2.5 py-0.5 text-[11px] font-bold rounded-lg border transition-colors cursor-pointer ${
+                                (c.status || 'APPROVED') === 'APPROVED'
+                                  ? 'bg-[#FEF2F2] text-[#DC2626] border-[#FCA5A5] hover:bg-[#FEE2E2]'
+                                  : 'bg-[#EAF4EC] text-[#1F6B32] border-[#C5E3CC] hover:bg-[#D5EAD8]'
+                              }`}
+                            >
+                              {updatingCompanyId === c.id ? 'Saving...' : ((c.status || 'APPROVED') === 'APPROVED' ? 'Suspend' : 'Approve')}
+                            </button>
+                          </div>
                         </td>
 
                         <td className="py-3 px-4 font-medium">

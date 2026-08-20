@@ -65,11 +65,20 @@ async function runPhase8Tests() {
     testDeptId = targetDept.id;
     testDeptName = targetDept.department_name;
 
-    // 3. Fetch non-admin users for provisioning testing
+    // 3. Fetch non-core users for provisioning testing
+    const coreEmails = [
+      'admin@raisoni.edu',
+      'hod.cse@raisoni.edu',
+      'tpo@raisoni.edu',
+      'faculty.cse@raisoni.edu',
+      'mentor@techcorp.com',
+      'student@raisoni.edu'
+    ];
+
     const { data: users, error: userErr } = await supabase
       .from('users')
       .select('id, full_name, email, role, status')
-      .neq('id', authData.user.id)
+      .not('email', 'in', `("${coreEmails.join('","')}")`)
       .limit(10);
 
     if (userErr || !users || users.length < 3) {
@@ -78,7 +87,7 @@ async function runPhase8Tests() {
         false,
         'Insufficient users found for provisioning test.',
         userErr ? userErr.message : `Found ${users?.length || 0} users`,
-        'At least 3 non-admin users'
+        'At least 3 non-core users'
       );
       return;
     }
@@ -384,6 +393,14 @@ async function runPhase8Tests() {
     } catch (err) {
       recordResult('Public Self-Registration Guard', false, `Error: ${err.message}`, err.message, 'Student-only self registration');
     }
+
+    // --- CLEANUP TEST FIXTURES ---
+    if (testFacultyUserId) await supabase.from('users').update({ role: 'student' }).eq('id', testFacultyUserId);
+    if (testHodUserId) {
+      await supabase.from('users').update({ role: 'student' }).eq('id', testHodUserId);
+      await supabase.from('departments').update({ hod_id: null }).eq('id', testDeptId);
+    }
+    if (testTpoUserId) await supabase.from('users').update({ role: 'student' }).eq('id', testTpoUserId);
 
   } catch (globalErr) {
     console.error('Global Error in Phase 8 Test Suite:', globalErr);

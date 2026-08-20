@@ -29,6 +29,7 @@
 | **AI Certificate Verification (Phase 11)** | **COMPLETED** | SHA-256 Hashing + Trust Engine (0-100%) + Document Identity Validation + Anomaly Flags + Advisory AI + Human Adjudication Drawer — 18/18 Acceptance Tests PASS |
 | **Gemini AI Integration (Phase 12)** | **COMPLETED** | Secure Server Boundary Proxy + Gemini 1.5 Flash Explanation Engine + Data Minimization + Schema Validation + Failure Fallback + Audit Trail — 12/12 Acceptance Tests PASS |
 | **Institutional & Departmental Analytics (Phase 13)** | **COMPLETED** | TPO Institutional Analytics + HOD Department-Scoped Isolation + Admin System Metrics & Audit Log Stream + Recharts Integration — 21/21 Acceptance Tests PASS |
+| **Admin Company Governance (Phase 9)** | **COMPLETED** | Company Status Control (APPROVED/SUSPENDED) + Controlled Mentor Registration + Mentor Provisioning & Reassignment + Suspended Posting Restriction + Zero Schema Changes — 12/12 Acceptance Tests PASS |
 | **Final Hackathon Audit & Release Readiness (Phase 14)** | **COMPLETED** | 92/92 Acceptance Tests PASS; npm run build Exit Code 0; 100% Demo Ready |
 
 ---

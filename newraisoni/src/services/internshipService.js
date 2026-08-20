@@ -15,6 +15,19 @@ export const internshipService = {
     }
 
     try {
+      // Validate host company mentor status
+      const { data: mentors } = await supabase
+        .from('company_mentors')
+        .select('users(status)')
+        .eq('company_id', companyId);
+
+      if (mentors && mentors.length > 0) {
+        const isAnyInactive = mentors.some((m) => m.users?.status === 'Inactive');
+        if (isAnyInactive) {
+          throw new Error('Host company account is suspended. New internship posting creation is restricted.');
+        }
+      }
+
       const payload = {
         company_id: companyId,
         title: postingData.title.trim(),

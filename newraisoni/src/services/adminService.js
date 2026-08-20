@@ -288,6 +288,46 @@ export const adminService = {
   },
 
   /**
+   * Update a company partner's lifecycle status (APPROVED / SUSPENDED)
+   * Reuses existing users.status ('Active' / 'Inactive') for zero schema changes
+   */
+  async updateCompanyStatus(companyId, newStatus, currentAdminId) {
+    if (!companyId || !newStatus) {
+      throw new Error('Company ID and new status are required.');
+    }
+
+    try {
+      // 1. Fetch company mentor user IDs linked to this company
+      const { data: mentors } = await supabase
+        .from('company_mentors')
+        .select('user_id')
+        .eq('company_id', companyId);
+
+      const userStatus = newStatus === 'SUSPENDED' ? 'Inactive' : 'Active';
+
+      if (mentors && mentors.length > 0) {
+        const userIds = mentors.map((m) => m.user_id);
+        await supabase
+          .from('users')
+          .update({ status: userStatus, updated_at: new Date().toISOString() })
+          .in('id', userIds);
+      }
+
+      await supabase.from('audit_logs').insert({
+        user_id: currentAdminId,
+        action: `COMPANY_STATUS_CHANGED: ${newStatus.toUpperCase()}`,
+        module: 'COMPANY_GOVERNANCE',
+        details: JSON.stringify({ company_id: companyId, new_status: newStatus, mentor_status: userStatus }),
+      });
+
+      return { company_id: companyId, status: newStatus };
+    } catch (err) {
+      console.error('adminService.updateCompanyStatus error:', err.message || err);
+      throw err;
+    }
+  },
+
+  /**
    * Provision a Company Mentor user account linked to an approved company
    */
   async provisionCompanyMentor(userId, companyId, designation, currentAdminId) {
