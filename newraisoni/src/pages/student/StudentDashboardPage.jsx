@@ -65,21 +65,6 @@ const TodayStatusCard = ({ internship, userId }) => {
         pendingTaskCount = taskIds.filter((id) => !submittedSet.has(id)).length;
       }
 
-      const thisMonthStart = new Date();
-      thisMonthStart.setDate(1);
-      thisMonthStart.setHours(0, 0, 0, 0);
-      const { data: compEvals } = await supabase
-        .from('company_evaluations')
-        .select('id')
-        .eq('internship_id', internshipId)
-        .gte('created_at', thisMonthStart.toISOString());
-      const { data: facEvals } = await supabase
-        .from('faculty_evaluations')
-        .select('id')
-        .eq('internship_id', internshipId)
-        .gte('created_at', thisMonthStart.toISOString());
-      const evalPending = !(compEvals?.length > 0 && facEvals?.length > 0);
-
       let progressPct = 0;
       if (internship.start_date && internship.end_date) {
         const start = new Date(internship.start_date).getTime();
@@ -90,7 +75,7 @@ const TodayStatusCard = ({ internship, userId }) => {
         }
       }
 
-      setStatus({ attendanceDone, worklogDone, pendingTaskCount, evalPending, progressPct });
+      setStatus({ attendanceDone, worklogDone, pendingTaskCount, progressPct });
     } catch (err) {
       console.error('TodayStatusCard fetch error:', err.message || err);
       setStatus(null);
@@ -109,7 +94,7 @@ const TodayStatusCard = ({ internship, userId }) => {
 
   if (!status) return null;
 
-  const { attendanceDone, worklogDone, pendingTaskCount, evalPending, progressPct } = status;
+  const { attendanceDone, worklogDone, pendingTaskCount, progressPct } = status;
 
   const rows = [
     {
