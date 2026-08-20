@@ -328,6 +328,63 @@ export const adminService = {
   },
 
   /**
+   * Create & provision a new Auth staff account directly (Faculty, HOD, TPO, Company Mentor)
+   */
+  async createAndProvisionStaff({ email, password, fullName, phone, role, departmentId, designation, companyId, currentAdminId }) {
+    if (!email || !password || !fullName || !role) {
+      throw new Error('Email, Password, Full Name, and Staff Role are required for account creation.');
+    }
+
+    try {
+      // 1. Create Auth Account in Supabase
+      const { data: authData, error: authErr } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role,
+          },
+        },
+      });
+
+      if (authErr) throw authErr;
+      const user = authData.user;
+      if (!user) throw new Error('Failed to create staff authentication account.');
+
+      // 2. Persist in public.users table
+      await supabase.from('users').upsert({
+        id: user.id,
+        email: email.trim().toLowerCase(),
+        full_name: fullName,
+        role,
+        phone: phone || null,
+        status: 'Active',
+        updated_at: new Date().toISOString(),
+      });
+
+      // 3. Provision Role Profile
+      if (role === 'faculty_mentor') {
+        if (!departmentId) throw new Error('Department selection is required for Faculty Mentor provisioning.');
+        await this.provisionFacultyMentor(user.id, departmentId, designation, currentAdminId);
+      } else if (role === 'hod') {
+        if (!departmentId) throw new Error('Department selection is required for HOD leadership provisioning.');
+        await this.provisionHOD(user.id, departmentId, currentAdminId);
+      } else if (role === 'tpo') {
+        await this.provisionTPO(user.id, currentAdminId);
+      } else if (role === 'company_mentor') {
+        if (!companyId) throw new Error('Target company selection is required for Company Mentor provisioning.');
+        await this.provisionCompanyMentor(user.id, companyId, designation, currentAdminId);
+      }
+
+      return { userId: user.id, email: email.trim().toLowerCase(), role };
+    } catch (err) {
+      console.error('adminService.createAndProvisionStaff error:', err.message || err);
+      throw err;
+    }
+  },
+
+  /**
    * Provision a Company Mentor user account linked to an approved company
    */
   async provisionCompanyMentor(userId, companyId, designation, currentAdminId) {

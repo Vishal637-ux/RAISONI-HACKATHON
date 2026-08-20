@@ -70,28 +70,48 @@ export const AdminDashboardPage = () => {
 
   const [showProvisionModal, setShowProvisionModal] = useState(false);
   const [provisionData, setProvisionData] = useState({
+    createMode: false,
     userId: '',
     companyId: '',
     designation: 'Senior Technical Lead',
+    email: '',
+    password: '',
+    fullName: '',
+    phone: '',
   });
 
   // Modal states for Staff Governance
   const [showFacultyModal, setShowFacultyModal] = useState(false);
   const [facultyData, setFacultyData] = useState({
+    createMode: false,
     userId: '',
     departmentId: '',
     designation: 'Assistant Professor',
+    email: '',
+    password: '',
+    fullName: '',
+    phone: '',
   });
 
   const [showHodModal, setShowHodModal] = useState(false);
   const [hodData, setHodData] = useState({
+    createMode: false,
     userId: '',
     departmentId: '',
+    email: '',
+    password: '',
+    fullName: '',
+    phone: '',
   });
 
   const [showTpoModal, setShowTpoModal] = useState(false);
   const [tpoData, setTpoData] = useState({
+    createMode: false,
     userId: '',
+    email: '',
+    password: '',
+    fullName: '',
+    phone: '',
   });
 
   // Invite Link Modal State
@@ -113,25 +133,30 @@ export const AdminDashboardPage = () => {
       setAuditLogs(logsData);
       setUsersList(allUsersData);
       setCompaniesList(allCompaniesData);
-      setDepartmentsList(deptsData || []);
+      setDepartmentsList(deptsData);
     } catch (err) {
-      console.error('AdminDashboardPage data error:', err);
-      setError('Unable to load system analytics, user governance list, or audit logs.');
+      console.error('Error loading Admin governance data:', err);
+      setError(err.message || 'Failed to load system governance data.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchAdminData();
-  }, []);
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      setUpdatingUserId(userId);
+      await adminService.updateUserRole(userId, newRole, user?.id);
+      setSuccessMsg(`User role updated to ${newRole}.`);
+      await fetchAdminData();
+    } catch (err) {
+      setError(err.message || 'Failed to update user role.');
+    } finally {
+      setUpdatingUserId(null);
+    }
+  };
 
   const handleStatusToggle = async (targetUserId, currentStatus) => {
     const nextStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
-    if (nextStatus === 'Inactive') {
-      const confirmDeactivate = window.confirm('Are you sure you want to deactivate this institutional user account?');
-      if (!confirmDeactivate) return;
-    }
     try {
       setUpdatingUserId(targetUserId);
       setError(null);
@@ -147,21 +172,7 @@ export const AdminDashboardPage = () => {
     }
   };
 
-  const handleRoleChange = async (targetUserId, newRole) => {
-    try {
-      setUpdatingUserId(targetUserId);
-      setError(null);
-      setSuccessMsg('');
-      await adminService.updateUserRole(targetUserId, newRole, user?.id);
-      setSuccessMsg(`User role successfully reassigned to '${newRole}'.`);
-      await fetchAdminData();
-    } catch (err) {
-      console.error('Role update error:', err);
-      setError(err.message || 'Failed to update user role.');
-    } finally {
-      setUpdatingUserId(null);
-    }
-  };
+
 
   const handleCreateCompanySubmit = async (e) => {
     e.preventDefault();
@@ -1440,23 +1451,82 @@ export const AdminDashboardPage = () => {
                 </button>
               </div>
 
+              <div className="flex items-center gap-1 p-1 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setProvisionData((prev) => ({ ...prev, createMode: false }))}
+                  className={`flex-1 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                    !provisionData.createMode ? 'bg-white text-[#18201B] shadow-xs border border-[#E1E7E2]' : 'text-[#66706A]'
+                  }`}
+                >
+                  Select Existing Candidate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProvisionData((prev) => ({ ...prev, createMode: true }))}
+                  className={`flex-1 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                    provisionData.createMode ? 'bg-white text-[#1F6B32] shadow-xs border border-[#C5E3CC]' : 'text-[#66706A]'
+                  }`}
+                >
+                  ➕ Create New Staff Account
+                </button>
+              </div>
+
               <form onSubmit={handleProvisionMentorSubmit} className="space-y-3 text-xs">
-                <div>
-                  <label className="block font-bold text-[#18201B] mb-1">Select User Candidate *</label>
-                  <select
-                    value={provisionData.userId}
-                    onChange={(e) => setProvisionData((prev) => ({ ...prev, userId: e.target.value }))}
-                    required
-                    className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B] cursor-pointer"
-                  >
-                    <option value="">Select User Candidate</option>
-                    {usersList.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.full_name || u.email} ({u.role})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {provisionData.createMode ? (
+                  <>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={provisionData.fullName}
+                        onChange={(e) => setProvisionData((prev) => ({ ...prev, fullName: e.target.value }))}
+                        placeholder="e.g. Vikram Mehta"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Official Mentor Email *</label>
+                      <input
+                        type="email"
+                        required
+                        value={provisionData.email}
+                        onChange={(e) => setProvisionData((prev) => ({ ...prev, email: e.target.value }))}
+                        placeholder="e.g. vikram.mehta@apex.ai"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Temporary Password *</label>
+                      <input
+                        type="password"
+                        required
+                        value={provisionData.password}
+                        onChange={(e) => setProvisionData((prev) => ({ ...prev, password: e.target.value }))}
+                        placeholder="Min 6 characters"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <label className="block font-bold text-[#18201B] mb-1">Select User Candidate *</label>
+                    <select
+                      value={provisionData.userId}
+                      onChange={(e) => setProvisionData((prev) => ({ ...prev, userId: e.target.value }))}
+                      required={!provisionData.createMode}
+                      className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B] cursor-pointer"
+                    >
+                      <option value="">Select User Candidate</option>
+                      {usersList.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.full_name || u.email} ({u.role})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="block font-bold text-[#18201B] mb-1">Select Target Approved Company *</label>
@@ -1521,23 +1591,82 @@ export const AdminDashboardPage = () => {
                 </button>
               </div>
 
+              <div className="flex items-center gap-1 p-1 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setFacultyData((prev) => ({ ...prev, createMode: false }))}
+                  className={`flex-1 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                    !facultyData.createMode ? 'bg-white text-[#18201B] shadow-xs border border-[#E1E7E2]' : 'text-[#66706A]'
+                  }`}
+                >
+                  Select Existing Candidate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFacultyData((prev) => ({ ...prev, createMode: true }))}
+                  className={`flex-1 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                    facultyData.createMode ? 'bg-white text-[#1F6B32] shadow-xs border border-[#C5E3CC]' : 'text-[#66706A]'
+                  }`}
+                >
+                  ➕ Create New Staff Account
+                </button>
+              </div>
+
               <form onSubmit={handleProvisionFacultySubmit} className="space-y-3 text-xs">
-                <div>
-                  <label className="block font-bold text-[#18201B] mb-1">Select User Candidate *</label>
-                  <select
-                    value={facultyData.userId}
-                    onChange={(e) => setFacultyData((prev) => ({ ...prev, userId: e.target.value }))}
-                    required
-                    className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B] cursor-pointer"
-                  >
-                    <option value="">Select User Candidate</option>
-                    {usersList.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.full_name || u.email} ({u.role})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {facultyData.createMode ? (
+                  <>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={facultyData.fullName}
+                        onChange={(e) => setFacultyData((prev) => ({ ...prev, fullName: e.target.value }))}
+                        placeholder="e.g. Dr. Ramesh Kumar"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Official Faculty Email *</label>
+                      <input
+                        type="email"
+                        required
+                        value={facultyData.email}
+                        onChange={(e) => setFacultyData((prev) => ({ ...prev, email: e.target.value }))}
+                        placeholder="e.g. ramesh.kumar@raisoni.edu"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Temporary Password *</label>
+                      <input
+                        type="password"
+                        required
+                        value={facultyData.password}
+                        onChange={(e) => setFacultyData((prev) => ({ ...prev, password: e.target.value }))}
+                        placeholder="Min 6 characters"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <label className="block font-bold text-[#18201B] mb-1">Select User Candidate *</label>
+                    <select
+                      value={facultyData.userId}
+                      onChange={(e) => setFacultyData((prev) => ({ ...prev, userId: e.target.value }))}
+                      required={!facultyData.createMode}
+                      className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B] cursor-pointer"
+                    >
+                      <option value="">Select User Candidate</option>
+                      {usersList.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.full_name || u.email} ({u.role})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="block font-bold text-[#18201B] mb-1">Select Academic Department *</label>
@@ -1602,23 +1731,82 @@ export const AdminDashboardPage = () => {
                 </button>
               </div>
 
+              <div className="flex items-center gap-1 p-1 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setHodData((prev) => ({ ...prev, createMode: false }))}
+                  className={`flex-1 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                    !hodData.createMode ? 'bg-white text-[#18201B] shadow-xs border border-[#E1E7E2]' : 'text-[#66706A]'
+                  }`}
+                >
+                  Select Existing Candidate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHodData((prev) => ({ ...prev, createMode: true }))}
+                  className={`flex-1 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                    hodData.createMode ? 'bg-white text-[#1F6B32] shadow-xs border border-[#C5E3CC]' : 'text-[#66706A]'
+                  }`}
+                >
+                  ➕ Create New Staff Account
+                </button>
+              </div>
+
               <form onSubmit={handleProvisionHodSubmit} className="space-y-3 text-xs">
-                <div>
-                  <label className="block font-bold text-[#18201B] mb-1">Select User Candidate *</label>
-                  <select
-                    value={hodData.userId}
-                    onChange={(e) => setHodData((prev) => ({ ...prev, userId: e.target.value }))}
-                    required
-                    className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B] cursor-pointer"
-                  >
-                    <option value="">Select User Candidate</option>
-                    {usersList.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.full_name || u.email} ({u.role})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {hodData.createMode ? (
+                  <>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={hodData.fullName}
+                        onChange={(e) => setHodData((prev) => ({ ...prev, fullName: e.target.value }))}
+                        placeholder="e.g. Dr. Sunita Patil"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Official HOD Email *</label>
+                      <input
+                        type="email"
+                        required
+                        value={hodData.email}
+                        onChange={(e) => setHodData((prev) => ({ ...prev, email: e.target.value }))}
+                        placeholder="e.g. hod.civil@raisoni.edu"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Temporary Password *</label>
+                      <input
+                        type="password"
+                        required
+                        value={hodData.password}
+                        onChange={(e) => setHodData((prev) => ({ ...prev, password: e.target.value }))}
+                        placeholder="Min 6 characters"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <label className="block font-bold text-[#18201B] mb-1">Select User Candidate *</label>
+                    <select
+                      value={hodData.userId}
+                      onChange={(e) => setHodData((prev) => ({ ...prev, userId: e.target.value }))}
+                      required={!hodData.createMode}
+                      className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B] cursor-pointer"
+                    >
+                      <option value="">Select User Candidate</option>
+                      {usersList.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.full_name || u.email} ({u.role})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="block font-bold text-[#18201B] mb-1">Select Academic Department Leadership *</label>
@@ -1672,23 +1860,82 @@ export const AdminDashboardPage = () => {
                 </button>
               </div>
 
+              <div className="flex items-center gap-1 p-1 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setTpoData((prev) => ({ ...prev, createMode: false }))}
+                  className={`flex-1 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                    !tpoData.createMode ? 'bg-white text-[#18201B] shadow-xs border border-[#E1E7E2]' : 'text-[#66706A]'
+                  }`}
+                >
+                  Select Existing Candidate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTpoData((prev) => ({ ...prev, createMode: true }))}
+                  className={`flex-1 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                    tpoData.createMode ? 'bg-white text-[#1F6B32] shadow-xs border border-[#C5E3CC]' : 'text-[#66706A]'
+                  }`}
+                >
+                  ➕ Create New Staff Account
+                </button>
+              </div>
+
               <form onSubmit={handleProvisionTpoSubmit} className="space-y-3 text-xs">
-                <div>
-                  <label className="block font-bold text-[#18201B] mb-1">Select User Candidate *</label>
-                  <select
-                    value={tpoData.userId}
-                    onChange={(e) => setTpoData((prev) => ({ ...prev, userId: e.target.value }))}
-                    required
-                    className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B] cursor-pointer"
-                  >
-                    <option value="">Select User Candidate</option>
-                    {usersList.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.full_name || u.email} ({u.role})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {tpoData.createMode ? (
+                  <>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={tpoData.fullName}
+                        onChange={(e) => setTpoData((prev) => ({ ...prev, fullName: e.target.value }))}
+                        placeholder="e.g. Prof. TPO Officer"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Official TPO Email *</label>
+                      <input
+                        type="email"
+                        required
+                        value={tpoData.email}
+                        onChange={(e) => setTpoData((prev) => ({ ...prev, email: e.target.value }))}
+                        placeholder="e.g. tpo@raisoni.edu"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-[#18201B] mb-1">Temporary Password *</label>
+                      <input
+                        type="password"
+                        required
+                        value={tpoData.password}
+                        onChange={(e) => setTpoData((prev) => ({ ...prev, password: e.target.value }))}
+                        placeholder="Min 6 characters"
+                        className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B]"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <label className="block font-bold text-[#18201B] mb-1">Select User Candidate *</label>
+                    <select
+                      value={tpoData.userId}
+                      onChange={(e) => setTpoData((prev) => ({ ...prev, userId: e.target.value }))}
+                      required={!tpoData.createMode}
+                      className="w-full px-3 py-2 bg-[#F8FAF9] border border-[#E1E7E2] rounded-xl outline-none text-[#18201B] cursor-pointer"
+                    >
+                      <option value="">Select User Candidate</option>
+                      {usersList.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.full_name || u.email} ({u.role})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F0F4F1]">
                   <button
