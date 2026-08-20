@@ -1,5 +1,6 @@
 import React from 'react';
-import { Award, Compass, CheckSquare, FileText, AlertTriangle, ShieldCheck, AlertCircle, TrendingUp, Sparkles, Medal } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Award, Compass, CheckSquare, FileText, AlertTriangle, ShieldCheck, AlertCircle, TrendingUp, Sparkles, Medal, ExternalLink } from 'lucide-react';
 
 function getLetterGrade(score) {
   if (score >= 90) return { grade: 'Grade O', label: 'Outstanding (Highest Distinction)', bg: 'bg-[#EAF4EC]', text: 'text-[#1F6B32]', border: 'border-[#C5E3CC]' };
@@ -148,52 +149,70 @@ export const ProgressSummaryCard = ({ progress, title = 'Internship Progress Sum
         </div>
       </div>
 
-      {/* Breakdown Grid */}
+      {/* Interactive Breakdown Grid — Clickable Navigation to Pillar Pages */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
         {/* Attendance Metric */}
-        <div className="p-4 bg-[#F8FAF9] rounded-xl border border-[#E1E7E2] hover:border-[#2F8F46] transition-colors space-y-2">
+        <Link
+          to="/student/attendance"
+          className="p-4 bg-[#F8FAF9] rounded-xl border border-[#E1E7E2] hover:border-[#2F8F46] hover:bg-white hover:shadow-md transition-all space-y-2 group cursor-pointer"
+          title="Click to view GPS Attendance Check-In details"
+        >
           <div className="flex items-center justify-between text-[#66706A]">
-            <span className="font-bold text-[#18201B]">Attendance Rate</span>
-            <div className="w-7 h-7 rounded-lg bg-[#EAF4EC] text-[#2F8F46] flex items-center justify-center">
+            <span className="font-bold text-[#18201B] group-hover:text-[#1F6B32] transition-colors">Attendance Rate</span>
+            <div className="w-7 h-7 rounded-lg bg-[#EAF4EC] text-[#2F8F46] flex items-center justify-center group-hover:bg-[#2F8F46] group-hover:text-white transition-colors">
               <Compass className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-[#18201B]">{attPct.toFixed(1)}%</div>
+          <div className="text-2xl font-extrabold text-[#18201B] group-hover:text-[#1F6B32] transition-colors">{attPct.toFixed(1)}%</div>
           <div className="text-[11px] text-[#66706A] flex items-center justify-between border-t border-[#E1E7E2] pt-1.5">
             <span>Weight: <strong>40%</strong></span>
-            <span className="text-[#2F8F46] font-bold">GPS Verified</span>
+            <span className="text-[#2F8F46] font-bold flex items-center gap-1 group-hover:underline">
+              GPS Logs <ExternalLink className="w-3 h-3" />
+            </span>
           </div>
-        </div>
+        </Link>
 
         {/* Task Completion Metric */}
-        <div className="p-4 bg-[#F8FAF9] rounded-xl border border-[#E1E7E2] hover:border-[#2F8F46] transition-colors space-y-2">
+        <Link
+          to="/student/tasks"
+          className="p-4 bg-[#F8FAF9] rounded-xl border border-[#E1E7E2] hover:border-[#2F8F46] hover:bg-white hover:shadow-md transition-all space-y-2 group cursor-pointer"
+          title="Click to view Tasks & Deliverables"
+        >
           <div className="flex items-center justify-between text-[#66706A]">
-            <span className="font-bold text-[#18201B]">Task Completion</span>
-            <div className="w-7 h-7 rounded-lg bg-[#EAF4EC] text-[#2F8F46] flex items-center justify-center">
+            <span className="font-bold text-[#18201B] group-hover:text-[#1F6B32] transition-colors">Task Completion</span>
+            <div className="w-7 h-7 rounded-lg bg-[#EAF4EC] text-[#2F8F46] flex items-center justify-center group-hover:bg-[#2F8F46] group-hover:text-white transition-colors">
               <CheckSquare className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-[#18201B]">{taskPct.toFixed(1)}%</div>
+          <div className="text-2xl font-extrabold text-[#18201B] group-hover:text-[#1F6B32] transition-colors">{taskPct.toFixed(1)}%</div>
           <div className="text-[11px] text-[#66706A] flex items-center justify-between border-t border-[#E1E7E2] pt-1.5">
             <span>Weight: <strong>40%</strong></span>
-            <span className="text-[#2F8F46] font-bold">Graded Deliverables</span>
+            <span className="text-[#2F8F46] font-bold flex items-center gap-1 group-hover:underline">
+              Deliverables <ExternalLink className="w-3 h-3" />
+            </span>
           </div>
-        </div>
+        </Link>
 
         {/* Work Logs Metric */}
-        <div className="p-4 bg-[#F8FAF9] rounded-xl border border-[#E1E7E2] hover:border-[#2F8F46] transition-colors space-y-2">
+        <Link
+          to="/student/work-logs"
+          className="p-4 bg-[#F8FAF9] rounded-xl border border-[#E1E7E2] hover:border-[#2F8F46] hover:bg-white hover:shadow-md transition-all space-y-2 group cursor-pointer"
+          title="Click to view Daily Work Logs"
+        >
           <div className="flex items-center justify-between text-[#66706A]">
-            <span className="font-bold text-[#18201B]">Work Log Submissions</span>
-            <div className="w-7 h-7 rounded-lg bg-[#EAF4EC] text-[#2F8F46] flex items-center justify-center">
+            <span className="font-bold text-[#18201B] group-hover:text-[#1F6B32] transition-colors">Work Log Submissions</span>
+            <div className="w-7 h-7 rounded-lg bg-[#EAF4EC] text-[#2F8F46] flex items-center justify-center group-hover:bg-[#2F8F46] group-hover:text-white transition-colors">
               <FileText className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-[#18201B]">{logCount} Entries</div>
+          <div className="text-2xl font-extrabold text-[#18201B] group-hover:text-[#1F6B32] transition-colors">{logCount} Entries</div>
           <div className="text-[11px] text-[#66706A] flex items-center justify-between border-t border-[#E1E7E2] pt-1.5">
             <span>Weight: <strong>20%</strong></span>
-            <span className="text-[#2F8F46] font-bold">Logged Activity</span>
+            <span className="text-[#2F8F46] font-bold flex items-center gap-1 group-hover:underline">
+              Daily Logs <ExternalLink className="w-3 h-3" />
+            </span>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   );
