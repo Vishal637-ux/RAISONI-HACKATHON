@@ -32,7 +32,8 @@ import {
   ArrowRight,
   FileCheck,
   CheckSquare,
-  Sparkles
+  Sparkles,
+  AlertTriangle
 } from 'lucide-react';
 
 export const AdminDashboardPage = () => {
