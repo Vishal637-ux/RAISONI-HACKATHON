@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TrendingUp, BarChart3, ShieldCheck, AlertTriangle, AlertCircle, Sparkles, Activity } from 'lucide-react';
 
 export const ProgressChart = ({ history = [], title = 'Progress Performance Trend', periodType = 'MONTHLY' }) => {
-  const [viewMode, setViewMode] = useState('BAR'); // 'BAR' | 'LINE'
+  const [viewMode, setViewMode] = useState('LINE'); // Default to Stock Market Line view ('LINE')
 
   // Determine timeline slots count (default 6 for Monthly, 8 for Weekly)
   const totalSlots = periodType === 'WEEKLY' ? 8 : 6;
