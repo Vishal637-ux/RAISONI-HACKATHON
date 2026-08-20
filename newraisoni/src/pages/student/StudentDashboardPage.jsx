@@ -113,35 +113,28 @@ const TodayStatusCard = ({ internship, userId }) => {
 
   const rows = [
     {
-      label: 'Aaj Attendance Jhali Ka?',
+      label: 'Daily GPS Attendance Status',
       value: attendanceDone ? 'Present' : 'Not marked yet',
       ok: attendanceDone,
       link: '/student/attendance',
-      linkLabel: attendanceDone ? null : 'Mark Now',
+      linkLabel: attendanceDone ? null : 'Mark Attendance',
     },
     {
-      label: 'Aajcha Worklog',
+      label: 'Daily Work Log Submission',
       value: worklogDone ? 'Submitted' : 'Pending',
       ok: worklogDone,
       link: '/student/work-logs',
-      linkLabel: worklogDone ? null : 'Submit Now',
+      linkLabel: worklogDone ? null : 'Submit Work Log',
     },
     {
-      label: 'Pending Tasks',
+      label: 'Assigned Tasks & Deliverables',
       value:
         pendingTaskCount === 0
-          ? 'All tasks done'
+          ? 'All tasks completed'
           : `${pendingTaskCount} task${pendingTaskCount > 1 ? 's' : ''} pending`,
       ok: pendingTaskCount === 0,
       link: '/student/tasks',
       linkLabel: pendingTaskCount > 0 ? 'View Tasks' : null,
-    },
-    {
-      label: 'Monthly Evaluation',
-      value: evalPending ? 'Pending from mentors' : 'Done this month',
-      ok: !evalPending,
-      link: '/student/feedback',
-      linkLabel: null,
     },
   ];
 
@@ -152,7 +145,7 @@ const TodayStatusCard = ({ internship, userId }) => {
     <div className="bg-white rounded-xl border border-[#E1E7E2] shadow-xs overflow-hidden">
       <div className="flex items-center justify-between px-5 py-4 border-b border-[#E1E7E2] bg-[#F8FAF9]">
         <div className="flex items-center gap-2">
-          <span className="text-lg">??</span>
+          <Clock className="w-4 h-4 text-[#2F8F46]" />
           <h3 className="text-sm font-bold text-[#18201B]">Today's Internship Status</h3>
         </div>
         <span className="text-[11px] font-semibold text-[#66706A]">
@@ -182,12 +175,12 @@ const TodayStatusCard = ({ internship, userId }) => {
                   row.ok ? 'text-[#1F6B32]' : 'text-[#D97706]'
                 }`}
               >
-                {row.ok ? '?' : '?'} {row.value}
+                {row.value}
               </span>
               {row.linkLabel && (
                 <Link
                   to={row.link}
-                  className="px-2.5 py-1 bg-[#2F8F46] hover:bg-[#1F6B32] text-white text-[11px] font-bold rounded-lg transition-colors"
+                  className="px-2.5 py-1 bg-[#2F8F46] hover:bg-[#1F6B32] text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
                 >
                   {row.linkLabel}
                 </Link>
