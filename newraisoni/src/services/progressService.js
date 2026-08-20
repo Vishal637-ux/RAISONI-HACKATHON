@@ -25,15 +25,40 @@ export const progressService = {
     // Fetch master internship record
     const { data: internship, error: intErr } = await supabase
       .from('internships')
-      .select('id, student_id, start_date, status')
+      .select('id, student_id, start_date, status, created_at')
       .eq('id', internshipId)
       .single();
 
     if (intErr || !internship) return null;
 
-    const intStart = internship.start_date ? new Date(internship.start_date) : period.startDate;
-    const effectiveStart = intStart > period.startDate ? intStart : period.startDate;
+    // Resolve true start date:
+    // 1. Explicit start_date if configured
+    // 2. Earliest attendance record date
+    // 3. Internship created_at date
+    let intStart = internship.start_date ? new Date(internship.start_date) : null;
 
+    if (!intStart) {
+      const { data: firstAtt } = await supabase
+        .from('attendance')
+        .select('attendance_date, created_at')
+        .eq('internship_id', internshipId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (firstAtt?.attendance_date) {
+        intStart = new Date(firstAtt.attendance_date);
+      } else if (firstAtt?.created_at) {
+        intStart = new Date(firstAtt.created_at);
+      } else if (internship.created_at) {
+        intStart = new Date(internship.created_at);
+      } else {
+        intStart = period.startDate;
+      }
+    }
+
+    // Benchmark effective start & end
+    const effectiveStart = intStart > period.startDate ? intStart : period.startDate;
     const now = new Date();
     const effectiveEnd = now < period.endDate ? now : period.endDate;
 
@@ -188,14 +213,17 @@ export const progressService = {
       let weekly = (rows || []).filter((r) => r.period_type === 'WEEKLY');
       let monthly = (rows || []).filter((r) => r.period_type === 'MONTHLY');
 
-      // If no stored snapshots exist in DB, compute live real-time snapshots in memory
-      if (weekly.length === 0) {
-        const liveWeekly = await this.calculateLiveProgress(internship.id, 'WEEKLY');
-        if (liveWeekly) weekly = [liveWeekly];
+      // Always calculate live real-time snapshots for current periods
+      const liveWeekly = await this.calculateLiveProgress(internship.id, 'WEEKLY');
+      const liveMonthly = await this.calculateLiveProgress(internship.id, 'MONTHLY');
+
+      if (liveWeekly) {
+        // Replace or prepend live current week metrics
+        weekly = [liveWeekly, ...weekly.filter((w) => w.id !== liveWeekly.id)];
       }
-      if (monthly.length === 0) {
-        const liveMonthly = await this.calculateLiveProgress(internship.id, 'MONTHLY');
-        if (liveMonthly) monthly = [liveMonthly];
+      if (liveMonthly) {
+        // Replace or prepend live current month metrics
+        monthly = [liveMonthly, ...monthly.filter((m) => m.id !== liveMonthly.id)];
       }
 
       const current = monthly.length > 0 ? monthly[0] : weekly.length > 0 ? weekly[0] : null;
