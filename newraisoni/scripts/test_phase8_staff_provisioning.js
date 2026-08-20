@@ -398,9 +398,17 @@ async function runPhase8Tests() {
     if (testFacultyUserId) await supabase.from('users').update({ role: 'student' }).eq('id', testFacultyUserId);
     if (testHodUserId) {
       await supabase.from('users').update({ role: 'student' }).eq('id', testHodUserId);
-      await supabase.from('departments').update({ hod_id: null }).eq('id', testDeptId);
+      if (testDeptId) await supabase.from('departments').update({ hod_id: null }).eq('id', testDeptId);
     }
     if (testTpoUserId) await supabase.from('users').update({ role: 'student' }).eq('id', testTpoUserId);
+
+    // Restore pristine demo roles
+    await supabase.from('users').update({ role: 'faculty_mentor' }).eq('email', 'faculty@raisoni.edu');
+    await supabase.from('users').update({ role: 'company_mentor' }).eq('email', 'company@raisoni.edu');
+    await supabase.from('users').update({ role: 'hod' }).eq('email', 'hod@raisoni.edu');
+    await supabase.from('users').update({ role: 'hod' }).eq('email', 'pyarelal@gmail.com');
+    await supabase.from('users').update({ role: 'tpo' }).eq('email', 'tpo@raisoni.edu');
+    await supabase.from('users').update({ role: 'student' }).eq('email', 'student@raisoni.edu');
 
   } catch (globalErr) {
     console.error('Global Error in Phase 8 Test Suite:', globalErr);

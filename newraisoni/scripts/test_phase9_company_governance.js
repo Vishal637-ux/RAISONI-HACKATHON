@@ -370,6 +370,14 @@ async function runPhase9Tests() {
       recordResult('Existing Student & Company Workflow Regression', false, `Error: ${err.message}`, err.message, 'Workflow regression check');
     }
 
+    // Restore pristine demo roles
+    await supabase.from('users').update({ role: 'faculty_mentor' }).eq('email', 'faculty@raisoni.edu');
+    await supabase.from('users').update({ role: 'company_mentor' }).eq('email', 'company@raisoni.edu');
+    await supabase.from('users').update({ role: 'hod' }).eq('email', 'hod@raisoni.edu');
+    await supabase.from('users').update({ role: 'hod' }).eq('email', 'pyarelal@gmail.com');
+    await supabase.from('users').update({ role: 'tpo' }).eq('email', 'tpo@raisoni.edu');
+    await supabase.from('users').update({ role: 'student' }).eq('email', 'student@raisoni.edu');
+
   } catch (globalErr) {
     console.error('Global Error in Phase 9 Test Suite:', globalErr);
   }
