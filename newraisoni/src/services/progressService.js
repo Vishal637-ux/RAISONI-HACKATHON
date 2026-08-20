@@ -218,12 +218,21 @@ export const progressService = {
       const liveMonthly = await this.calculateLiveProgress(internship.id, 'MONTHLY');
 
       if (liveWeekly) {
-        // Replace or prepend live current week metrics
-        weekly = [liveWeekly, ...weekly.filter((w) => w.id !== liveWeekly.id)];
+        const currentWeekStart = getISOWeekRange(new Date())?.startDate.toISOString().substring(0, 10);
+        const pastWeekly = (rows || []).filter((r) => {
+          if (r.period_type !== 'WEEKLY') return false;
+          const rStart = getISOWeekRange(new Date(r.created_at))?.startDate.toISOString().substring(0, 10);
+          return rStart !== currentWeekStart;
+        });
+        weekly = [liveWeekly, ...pastWeekly];
       }
+
       if (liveMonthly) {
-        // Replace or prepend live current month metrics
-        monthly = [liveMonthly, ...monthly.filter((m) => m.id !== liveMonthly.id)];
+        const currentMonthKey = new Date().toISOString().substring(0, 7); // e.g. '2026-08'
+        const pastMonthly = (rows || []).filter(
+          (r) => r.period_type === 'MONTHLY' && !r.created_at.startsWith(currentMonthKey)
+        );
+        monthly = [liveMonthly, ...pastMonthly];
       }
 
       const current = monthly.length > 0 ? monthly[0] : weekly.length > 0 ? weekly[0] : null;
