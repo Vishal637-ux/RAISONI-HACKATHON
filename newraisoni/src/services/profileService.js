@@ -295,15 +295,15 @@ export const profileService = {
     // 2. Email (15%)
     if (profile.email && profile.email.trim().length > 0) score += 15;
     // 3. Roll Number (15%)
-    if (profile.roll_number && profile.roll_number.trim().length > 0) score += 15;
+    if (profile.roll_number && String(profile.roll_number).trim().length > 0) score += 15;
     // 4. Department Linked (15%)
-    if (profile.department_id && profile.department_id.length === 36) score += 15;
+    if (profile.department_id || profile.departments || profile.department_name) score += 15;
     // 5. Academic CGPA (15%)
     if (profile.cgpa !== null && profile.cgpa !== undefined && !isNaN(profile.cgpa)) score += 15;
-    // 6. Skills Array (10%)
-    if (Array.isArray(profile.skills) && profile.skills.length > 0) score += 10;
+    // 6. Skills Array or String (10%)
+    if (profile.skills && (Array.isArray(profile.skills) ? profile.skills.length > 0 : String(profile.skills).trim().length > 0)) score += 10;
     // 7. Resume Document Uploaded (15%)
-    if (profile.resume_url && profile.resume_url.length > 0) score += 15;
+    if (profile.resume_url && String(profile.resume_url).trim().length > 0) score += 15;
 
     return Math.min(100, score);
   },
