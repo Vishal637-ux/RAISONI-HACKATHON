@@ -9,6 +9,7 @@ import { ROLES } from '../constants/roles';
 // Auth Pages
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RegisterPage } from '../pages/auth/RegisterPage';
+import { CompanyMentorRegisterPage } from '../pages/auth/CompanyMentorRegisterPage';
 import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage';
 
@@ -67,6 +68,7 @@ export const AppRoutes = () => {
       <Route element={<PublicRoute />}>
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+        <Route path="/register/company-mentor" element={<CompanyMentorRegisterPage />} />
         <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
         <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
       </Route>

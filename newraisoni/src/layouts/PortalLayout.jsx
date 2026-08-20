@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ROLE_LABELS } from '../constants/roles';
 import { ROUTES } from '../constants/routes';
-import { LogOut, User, Shield, ShieldCheck, Building2, GraduationCap, Award, BookOpen, LayoutDashboard, Briefcase, FileText, PlusCircle, Users, FileCheck, UserCheck, Compass, MapPin, CheckSquare, Star } from 'lucide-react';
+import { LogOut, User, Shield, ShieldCheck, Building2, GraduationCap, Award, BookOpen, LayoutDashboard, Briefcase, FileText, PlusCircle, Users, FileCheck, UserCheck, Compass, MapPin, CheckSquare, Star, Clock } from 'lucide-react';
 
-export const PortalLayout = ({ title, roleLabel, children }) => {
+export const PortalLayout = ({ title, roleLabel, adminActiveTab, onAdminTabChange, children }) => {
   const { user, profile, role, hodDepartment, logout } = useAuth();
 
   return (
@@ -37,7 +37,7 @@ export const PortalLayout = ({ title, roleLabel, children }) => {
 
           <button
             onClick={logout}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-[#66706A] hover:text-[#1F6B32] hover:bg-[#EAF4EC] border border-[#E1E7E2] rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-[#66706A] hover:text-[#1F6B32] hover:bg-[#EAF4EC] border border-[#E1E7E2] rounded-lg transition-colors cursor-pointer"
             title="Sign out of InterTrack"
           >
             <LogOut className="w-3.5 h-3.5" />
@@ -49,10 +49,10 @@ export const PortalLayout = ({ title, roleLabel, children }) => {
       {/* Main Body with Navigation Sidebar and Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-64 bg-white border-r border-[#E1E7E2] p-4 hidden md:flex flex-col justify-between">
+        <aside className="w-64 bg-white border-r border-[#E1E7E2] p-4 hidden md:flex flex-col justify-between overflow-y-auto">
           <nav className="space-y-1.5">
             <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[#66706A]">
-              Navigation
+              {role === 'admin' ? 'ADMIN ERP NAVIGATION' : 'Navigation'}
             </div>
 
             {/* Role Navigation Items */}
@@ -436,6 +436,95 @@ export const PortalLayout = ({ title, roleLabel, children }) => {
                   <ShieldCheck className="w-4 h-4 text-[#2F8F46]" />
                   <span>Certificate Verification AI</span>
                 </Link>
+              </>
+            ) : role === 'admin' ? (
+              <>
+                <button
+                  onClick={() => onAdminTabChange && onAdminTabChange('overview')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition-colors text-left cursor-pointer ${
+                    (adminActiveTab || 'overview') === 'overview'
+                      ? 'bg-[#EAF4EC] text-[#1F6B32] border border-[#EAF4EC]'
+                      : 'text-[#66706A] hover:bg-[#F8FAF9] hover:text-[#18201B]'
+                  }`}
+                >
+                  <LayoutDashboard className="w-4 h-4 text-[#2F8F46]" />
+                  <span>Dashboard Overview</span>
+                </button>
+
+                <div className="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-[#66706A]">
+                  PEOPLE
+                </div>
+                <button
+                  onClick={() => onAdminTabChange && onAdminTabChange('users')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition-colors text-left cursor-pointer ${
+                    adminActiveTab === 'users'
+                      ? 'bg-[#EAF4EC] text-[#1F6B32] border border-[#EAF4EC]'
+                      : 'text-[#66706A] hover:bg-[#F8FAF9] hover:text-[#18201B]'
+                  }`}
+                >
+                  <UserCheck className="w-4 h-4 text-[#2F8F46]" />
+                  <span>People & Access</span>
+                </button>
+
+                <div className="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-[#66706A]">
+                  ACADEMIC
+                </div>
+                <button
+                  onClick={() => onAdminTabChange && onAdminTabChange('staff')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition-colors text-left cursor-pointer ${
+                    adminActiveTab === 'staff'
+                      ? 'bg-[#EAF4EC] text-[#1F6B32] border border-[#EAF4EC]'
+                      : 'text-[#66706A] hover:bg-[#F8FAF9] hover:text-[#18201B]'
+                  }`}
+                >
+                  <GraduationCap className="w-4 h-4 text-[#2F8F46]" />
+                  <span>Academic & Staff Leadership</span>
+                </button>
+
+                <div className="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-[#66706A]">
+                  INDUSTRY
+                </div>
+                <button
+                  onClick={() => onAdminTabChange && onAdminTabChange('companies')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition-colors text-left cursor-pointer ${
+                    adminActiveTab === 'companies'
+                      ? 'bg-[#EAF4EC] text-[#1F6B32] border border-[#EAF4EC]'
+                      : 'text-[#66706A] hover:bg-[#F8FAF9] hover:text-[#18201B]'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4 text-[#2F8F46]" />
+                  <span>Companies & Industry Partners</span>
+                </button>
+
+                <div className="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-[#66706A]">
+                  PLACEMENT
+                </div>
+                <button
+                  onClick={() => onAdminTabChange && onAdminTabChange('placement')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition-colors text-left cursor-pointer ${
+                    adminActiveTab === 'placement'
+                      ? 'bg-[#EAF4EC] text-[#1F6B32] border border-[#EAF4EC]'
+                      : 'text-[#66706A] hover:bg-[#F8FAF9] hover:text-[#18201B]'
+                  }`}
+                >
+                  <Briefcase className="w-4 h-4 text-[#2F8F46]" />
+                  <span>Internship & Placement Operations</span>
+                </button>
+
+                <div className="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-[#66706A]">
+                  SYSTEM
+                </div>
+                <button
+                  onClick={() => onAdminTabChange && onAdminTabChange('audit')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition-colors text-left cursor-pointer ${
+                    adminActiveTab === 'audit'
+                      ? 'bg-[#EAF4EC] text-[#1F6B32] border border-[#EAF4EC]'
+                      : 'text-[#66706A] hover:bg-[#F8FAF9] hover:text-[#18201B]'
+                  }`}
+                >
+                  <Clock className="w-4 h-4 text-[#2F8F46]" />
+                  <span>Recent Administrative Activity</span>
+                </button>
               </>
             ) : (
               <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#EAF4EC] text-[#1F6B32] font-semibold text-sm shadow-xs border border-[#EAF4EC]">

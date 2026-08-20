@@ -85,6 +85,72 @@ export const authService = {
   },
 
   /**
+   * Register an invited Company Mentor account linked to target company_id
+   */
+  async signUpCompanyMentor({ email, password, fullName, phone, companyId, designation }) {
+    if (!companyId) {
+      throw new Error('Valid host company_id is required for Company Mentor registration.');
+    }
+
+    // 1. Create user in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          role: ROLES.COMPANY,
+          company_id: companyId,
+        },
+      },
+    });
+
+    if (authError) throw authError;
+    const user = authData.user;
+    if (!user) throw new Error('Company Mentor user creation failed.');
+
+    // 2. Insert into public.users
+    const { error: userError } = await supabase
+      .from('users')
+      .upsert({
+        id: user.id,
+        email: email.trim().toLowerCase(),
+        full_name: fullName,
+        role: ROLES.COMPANY,
+        phone: phone || null,
+        status: 'Active',
+        updated_at: new Date().toISOString(),
+      });
+
+    if (userError) {
+      console.warn('Notice upserting public.users record:', userError.message);
+    }
+
+    // 3. Upsert into public.company_mentors
+    const { error: mentorError } = await supabase
+      .from('company_mentors')
+      .upsert({
+        user_id: user.id,
+        company_id: companyId,
+        designation: designation || 'Company Mentor',
+      });
+
+    if (mentorError) {
+      console.warn('Notice upserting public.company_mentors record:', mentorError.message);
+    }
+
+    // 4. Log to audit_logs
+    await supabase.from('audit_logs').insert({
+      user_id: user.id,
+      action: 'COMPANY_MENTOR_REGISTRATION_COMPLETED',
+      module: 'COMPANY_GOVERNANCE',
+      details: JSON.stringify({ company_id: companyId, designation }),
+    });
+
+    return { user, session: authData.session };
+  },
+
+  /**
    * Sign in with Email and Password via real Supabase Auth
    */
   async signIn({ email, password }) {
