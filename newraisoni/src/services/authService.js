@@ -126,17 +126,37 @@ export const authService = {
       console.warn('Notice upserting public.users record:', userError.message);
     }
 
-    // 3. Upsert into public.company_mentors
-    const { error: mentorError } = await supabase
+    // 3. Update or Insert into public.company_mentors safely
+    const { data: existingMentor } = await supabase
       .from('company_mentors')
-      .upsert({
-        user_id: user.id,
-        company_id: companyId,
-        designation: designation || 'Company Mentor',
-      });
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-    if (mentorError) {
-      console.warn('Notice upserting public.company_mentors record:', mentorError.message);
+    if (existingMentor) {
+      const { error: mentorError } = await supabase
+        .from('company_mentors')
+        .update({
+          company_id: companyId,
+          designation: designation || 'Company Mentor',
+        })
+        .eq('id', existingMentor.id);
+
+      if (mentorError) {
+        console.warn('Notice updating public.company_mentors record:', mentorError.message);
+      }
+    } else {
+      const { error: mentorError } = await supabase
+        .from('company_mentors')
+        .insert({
+          user_id: user.id,
+          company_id: companyId,
+          designation: designation || 'Company Mentor',
+        });
+
+      if (mentorError) {
+        console.warn('Notice inserting public.company_mentors record:', mentorError.message);
+      }
     }
 
     // 4. Log to audit_logs
