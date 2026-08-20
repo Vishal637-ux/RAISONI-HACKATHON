@@ -365,6 +365,11 @@ export const internshipService = {
     .doc-box { background: #f8faf9; border: 1px solid #e1e7e2; padding: 20px; border-radius: 12px; margin: 24px 0; }
     .doc-box p { margin: 6px 0; font-size: 13px; }
     .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e1e7e2; text-align: center; font-size: 12px; color: #66706a; }
+    @media print {
+      body { background: white; padding: 0; }
+      .card { box-shadow: none; border: none; max-width: 100%; }
+      .no-print { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -387,6 +392,12 @@ export const internshipService = {
       </div>
 
       <p>All institutional privileges, including Faculty Mentor allocation, GPS attendance check-in, and daily work log submissions are fully enabled for this internship position.</p>
+    
+      <div class="no-print" style="text-align: center; margin-top: 28px;">
+        <button onclick="window.print()" style="background: #2f8f46; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(47,143,70,0.3);">
+          🖨️ Print / Save as PDF
+        </button>
+      </div>
     </div>
     <div class="footer">
       <p>InterTrack Public Verification Engine • Official Institutional Record</p>

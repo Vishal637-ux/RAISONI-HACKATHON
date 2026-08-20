@@ -20,26 +20,16 @@ export const ApplicationTrackerTable = ({ applications = [] }) => {
     );
   }
 
-  const handleOpenOffer = async (offer, isDownload = false) => {
+  const handleOpenOffer = async (offer) => {
     if (!offer?.file_url) return;
     try {
       setLoadingOfferId(offer.id);
       setActionError('');
       const signedUrl = await internshipService.getSignedOfferUrl(offer.file_url);
       if (!signedUrl) {
-        throw new Error('Could not generate secure access link for offer letter PDF.');
+        throw new Error('Could not generate secure access link for offer letter document.');
       }
-      if (isDownload) {
-        const link = document.createElement('a');
-        link.href = signedUrl;
-        link.target = '_blank';
-        link.download = `Offer_Letter_${offer.id.slice(0, 8)}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        window.open(signedUrl, '_blank', 'noopener,noreferrer');
-      }
+      window.open(signedUrl, '_blank', 'noopener,noreferrer');
     } catch (err) {
       console.error('Error opening offer letter:', err);
       setActionError(err.message || 'Failed to open offer letter document.');
