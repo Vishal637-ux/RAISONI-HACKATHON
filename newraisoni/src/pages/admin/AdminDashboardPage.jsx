@@ -128,6 +128,10 @@ export const AdminDashboardPage = () => {
 
   const handleStatusToggle = async (targetUserId, currentStatus) => {
     const nextStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+    if (nextStatus === 'Inactive') {
+      const confirmDeactivate = window.confirm('Are you sure you want to deactivate this institutional user account?');
+      if (!confirmDeactivate) return;
+    }
     try {
       setUpdatingUserId(targetUserId);
       setError(null);
