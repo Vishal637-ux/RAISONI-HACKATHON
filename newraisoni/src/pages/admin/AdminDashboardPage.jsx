@@ -477,27 +477,27 @@ export const AdminDashboardPage = () => {
               </div>
             </div>
 
-            {/* Key Metric Cards */}
+            {/* Institutional Overview Metrics Cards */}
             {analytics && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
                 <AnalyticsStatCard
-                  title="Enrolled Students"
+                  title="Students"
                   value={analytics.roleCounts.student}
-                  subtitle="Student accounts"
+                  subtitle="Enrolled students"
                   icon={Users}
                   color="emerald"
                 />
                 <AnalyticsStatCard
-                  title="Faculty Mentors"
+                  title="Faculty"
                   value={analytics.roleCounts.faculty_mentor}
                   subtitle="Academic mentors"
                   icon={GraduationCap}
                   color="blue"
                 />
                 <AnalyticsStatCard
-                  title="Department Heads"
+                  title="HODs"
                   value={analytics.roleCounts.hod}
-                  subtitle="HOD Leaders"
+                  subtitle="Department leaders"
                   icon={Award}
                   color="purple"
                 />
@@ -509,21 +509,192 @@ export const AdminDashboardPage = () => {
                   color="amber"
                 />
                 <AnalyticsStatCard
-                  title="Company Mentors"
+                  title="Industry Mentors"
                   value={analytics.roleCounts.company_mentor}
-                  subtitle="Industry mentors"
+                  subtitle="Company mentors"
                   icon={UserCheck}
                   color="emerald"
                 />
                 <AnalyticsStatCard
                   title="Host Companies"
                   value={analytics.companyCount}
-                  subtitle="Industry partners"
+                  subtitle="Partner companies"
                   icon={Building}
                   color="blue"
                 />
+                <AnalyticsStatCard
+                  title="Opportunities"
+                  value={analytics.postingCount}
+                  subtitle="Active listings"
+                  icon={Briefcase}
+                  color="purple"
+                />
+                <AnalyticsStatCard
+                  title="Active Internships"
+                  value={analytics.internshipCount}
+                  subtitle="Live internships"
+                  icon={CheckCircle2}
+                  color="amber"
+                />
               </div>
             )}
+
+            {/* Action Required Command Panel */}
+            <div className="bg-white p-5 rounded-xl border border-[#E1E7E2] shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-[#18201B] uppercase tracking-wider flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-[#D97706]" />
+                  <span>Action Required — Institutional Governance Alerts</span>
+                </h4>
+                <span className="text-[11px] font-bold text-[#66706A]">
+                  {(() => {
+                    const items = [];
+                    (departmentsList || []).forEach((d) => {
+                      if (!d.hod_id) items.push(1);
+                      const fCount = usersList.filter((u) => u.role === 'faculty_mentor' && (u.faculty_mentors?.department === (d.name || d.department_name) || u.faculty_mentors?.department_id === d.id)).length;
+                      if (fCount === 0) items.push(1);
+                    });
+                    (companiesList || []).forEach((c) => {
+                      if (!c.company_mentors || c.company_mentors.length === 0) items.push(1);
+                      if (c.status === 'SUSPENDED') items.push(1);
+                    });
+                    return items.length > 0 ? `${items.length} Pending Action(s)` : 'All Configured';
+                  })()}
+                </span>
+              </div>
+
+              {(() => {
+                const actionItems = [];
+                (departmentsList || []).forEach((dept) => {
+                  if (!dept.hod_id) {
+                    actionItems.push({
+                      id: `hod_${dept.id}`,
+                      title: `Department '${dept.name || dept.department_name}' has no HOD assigned`,
+                      desc: 'Assign department leadership for academic governance.',
+                      btnText: 'Assign HOD',
+                      handler: () => {
+                        setHodData({ userId: '', departmentId: dept.id });
+                        setShowHodModal(true);
+                      },
+                    });
+                  }
+                  const fCount = usersList.filter((u) => u.role === 'faculty_mentor' && (u.faculty_mentors?.department === (dept.name || dept.department_name) || u.faculty_mentors?.department_id === dept.id)).length;
+                  if (fCount === 0) {
+                    actionItems.push({
+                      id: `fac_${dept.id}`,
+                      title: `Department '${dept.name || dept.department_name}' has 0 Faculty Mentors`,
+                      desc: 'Provision faculty mentors for mentee supervision.',
+                      btnText: 'Add Faculty Mentor',
+                      handler: () => {
+                        setFacultyData({ userId: '', departmentId: dept.id, designation: 'Assistant Professor' });
+                        setShowFacultyModal(true);
+                      },
+                    });
+                  }
+                });
+
+                (companiesList || []).forEach((comp) => {
+                  const mentors = Array.isArray(comp.company_mentors) ? comp.company_mentors : [];
+                  if (mentors.length === 0) {
+                    actionItems.push({
+                      id: `comp_m_${comp.id}`,
+                      title: `Company '${comp.company_name}' has no provisioned Company Mentor`,
+                      desc: 'Generate invitation link to register industry mentor.',
+                      btnText: 'Invite Mentor',
+                      handler: () => generateCompanyInviteLink(comp),
+                    });
+                  }
+                  if (comp.status === 'SUSPENDED') {
+                    actionItems.push({
+                      id: `comp_s_${comp.id}`,
+                      title: `Company '${comp.company_name}' is currently SUSPENDED`,
+                      desc: 'Review partner status and posting restrictions.',
+                      btnText: 'View Company',
+                      handler: () => setActiveTab('companies'),
+                    });
+                  }
+                });
+
+                if (actionItems.length === 0) {
+                  return (
+                    <div className="p-4 bg-[#EAF4EC] border border-[#C5E3CC] rounded-xl text-xs text-[#1F6B32] font-bold flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#2F8F46]" />
+                      <span>All institutional assignments and partner configurations are currently up to date.</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {actionItems.map((item) => (
+                      <div key={item.id} className="p-3 bg-[#FFFBEB] border border-[#FDE68A] rounded-xl flex items-center justify-between gap-3 text-xs">
+                        <div>
+                          <span className="font-bold text-[#18201B] block">{item.title}</span>
+                          <span className="text-[11px] text-[#66706A]">{item.desc}</span>
+                        </div>
+                        <button
+                          onClick={item.handler}
+                          className="px-3 py-1 bg-[#2F8F46] hover:bg-[#1F6B32] text-white font-bold text-[11px] rounded-lg transition-colors whitespace-nowrap cursor-pointer"
+                        >
+                          {item.btnText}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Academic Structure Section */}
+            <div className="bg-white p-5 rounded-xl border border-[#E1E7E2] shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-[#18201B] uppercase tracking-wider flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4 text-[#1F6B32]" />
+                  <span>Academic Departments Structure</span>
+                </h4>
+                <button
+                  onClick={() => setActiveTab('staff')}
+                  className="text-[11px] font-bold text-[#1F6B32] hover:underline"
+                >
+                  Manage Academic Leadership →
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {departmentsList.map((dept) => {
+                  const hodUser = usersList.find((u) => u.id === dept.hod_id);
+                  const facultyCount = usersList.filter(
+                    (u) => u.role === 'faculty_mentor' && (u.faculty_mentors?.department === (dept.name || dept.department_name) || u.faculty_mentors?.department_id === dept.id)
+                  ).length;
+
+                  const isConfigured = hodUser && facultyCount > 0;
+
+                  return (
+                    <div key={dept.id} className="p-3.5 bg-[#F8FAF9] rounded-xl border border-[#E1E7E2] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#18201B]">{dept.name || dept.department_name}</span>
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${
+                          isConfigured
+                            ? 'bg-[#EAF4EC] text-[#1F6B32] border-[#C5E3CC]'
+                            : 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]'
+                        }`}>
+                          {isConfigured ? 'Configured' : 'Action Required'}
+                        </span>
+                      </div>
+
+                      <div className="text-[11px] space-y-1 text-[#66706A]">
+                        <div>
+                          <strong className="text-[#18201B]">HOD:</strong> {hodUser?.full_name || 'Not Assigned'}
+                        </div>
+                        <div>
+                          <strong className="text-[#18201B]">Faculty Mentors:</strong> {facultyCount}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Distribution Chart & Recent Administrative Activity Stream */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -534,7 +705,7 @@ export const AdminDashboardPage = () => {
                 nameKey="name"
               />
 
-              {/* Recent Administrative Activity */}
+              {/* Recent Administrative Activity Stream */}
               <div className="bg-white p-5 rounded-xl border border-[#E1E7E2] shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-[#18201B] uppercase tracking-wider flex items-center gap-1.5">
