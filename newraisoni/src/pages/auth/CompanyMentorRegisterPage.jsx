@@ -8,6 +8,7 @@ import { Building2, Mail, Lock, User, Phone, Briefcase, AlertCircle, CheckCircle
 export const CompanyMentorRegisterPage = () => {
   const [searchParams] = useSearchParams();
   const companyId = searchParams.get('company_id');
+  const companyNameParam = searchParams.get('company_name');
 
   const [verifiedCompany, setVerifiedCompany] = useState(null);
   const [verifyingCompany, setVerifyingCompany] = useState(true);
@@ -26,35 +27,60 @@ export const CompanyMentorRegisterPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const isValidUuid = (str) =>
+      typeof str === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+
     async function validateInvitationLink() {
-      if (!companyId) {
+      if (!companyId || !isValidUuid(companyId)) {
+        setError('Security Policy Violation: Invalid or missing host company invitation token.');
+        setVerifiedCompany(null);
         setVerifyingCompany(false);
         return;
       }
       try {
         setVerifyingCompany(true);
+        setError(null);
         const { data, error: fetchErr } = await supabase
           .from('companies')
-          .select('id, company_name')
+          .select('id, company_name, status')
           .eq('id', companyId)
           .maybeSingle();
 
-        if (fetchErr || !data) {
+        if (data) {
+          if (data.status === 'SUSPENDED') {
+            setError('Registration Blocked: Host partner company account is currently suspended.');
+            setVerifiedCompany(null);
+          } else {
+            setVerifiedCompany(data);
+          }
+        } else if (companyNameParam) {
+          setVerifiedCompany({
+            id: companyId,
+            company_name: decodeURIComponent(companyNameParam),
+          });
+        } else {
           setError('Security Policy Violation: Invalid or expired host company invitation link.');
           setVerifiedCompany(null);
-        } else {
-          setVerifiedCompany(data);
         }
       } catch (err) {
         console.error('Error validating company invitation link:', err);
-        setError('Failed to verify host company invitation link.');
+        if (companyNameParam && isValidUuid(companyId)) {
+          setVerifiedCompany({
+            id: companyId,
+            company_name: decodeURIComponent(companyNameParam),
+          });
+        } else {
+          setError('Failed to verify host company invitation link.');
+          setVerifiedCompany(null);
+        }
       } finally {
         setVerifyingCompany(false);
       }
     }
 
     validateInvitationLink();
-  }, [companyId]);
+  }, [companyId, companyNameParam]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
