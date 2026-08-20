@@ -400,12 +400,7 @@ export const certificateVerificationService = {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      const cleanRecords = (records || []).filter((r) => {
-        const hash = String(r.document_hash || '');
-        const name = String(r.file_name || '').toLowerCase();
-        return !hash.startsWith('hash_') && !name.includes('test.pdf') && !name.includes('sample');
-      });
-      return cleanRecords;
+      return (records || []).slice(0, 5);
     } catch (err) {
       console.error('certificateVerificationService.getUserExternalCertificates error:', err.message || err);
       return [];
