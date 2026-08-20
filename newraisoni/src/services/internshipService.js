@@ -263,6 +263,14 @@ export const internshipService = {
               company_name,
               industry
             )
+          ),
+          offer_letters (
+            id,
+            file_url,
+            verification_status,
+            verified_by,
+            verified_at,
+            created_at
           )
         `)
         .eq('student_id', studentId)
@@ -277,6 +285,31 @@ export const internshipService = {
     } catch (err) {
       console.error('internshipService.getMyApplications error:', err.message || err);
       throw err;
+    }
+  },
+
+  /**
+   * Generate secure signed URL for viewing/downloading private offer letter PDF
+   * @param {string} filePath - Storage path in offer_letters bucket
+   */
+  async getSignedOfferUrl(filePath) {
+    if (!filePath) return null;
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      return filePath;
+    }
+    try {
+      const { data, error } = await supabase.storage
+        .from('offer_letters')
+        .createSignedUrl(filePath, 3600);
+
+      if (error) {
+        console.error('Error generating signed URL for offer letter:', error.message);
+        return null;
+      }
+      return data?.signedUrl || null;
+    } catch (err) {
+      console.error('internshipService.getSignedOfferUrl error:', err.message || err);
+      return null;
     }
   },
 

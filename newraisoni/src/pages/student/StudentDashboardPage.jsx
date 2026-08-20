@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { PortalLayout } from '../../layouts/PortalLayout';
 import { useAuth } from '../../context/AuthContext';
 import { internshipService } from '../../services/internshipService';
@@ -8,28 +9,45 @@ export const StudentDashboardPage = () => {
   const { profile, user } = useAuth();
 
   const [internship, setInternship] = useState(null);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadStudentInternship() {
+    async function loadStudentData() {
       if (!user?.id) return;
       try {
         setLoading(true);
-        const masterRow = await internshipService.getMyInternship(user.id);
+        const [masterRow, myApps] = await Promise.all([
+          internshipService.getMyInternship(user.id),
+          internshipService.getMyApplications(user.id),
+        ]);
         setInternship(masterRow);
+        setApplications(myApps || []);
       } catch (err) {
-        console.error('Error loading student internship:', err);
+        console.error('Error loading student dashboard data:', err);
       } finally {
         setLoading(false);
       }
     }
 
-    loadStudentInternship();
+    loadStudentData();
   }, [user]);
 
   const assignedFaculty = internship?.faculty_mentors;
   const facultyUser = assignedFaculty?.users || {};
   const facultyDept = assignedFaculty?.departments?.department_name || 'Academic Dept';
+
+  // Check for offer letter notification
+  const offerApp = (applications || []).find((a) => {
+    const list = Array.isArray(a.offer_letters) ? a.offer_letters : (a.offer_letters ? [a.offer_letters] : []);
+    return list.length > 0;
+  });
+
+  const offerRecord = offerApp
+    ? (Array.isArray(offerApp.offer_letters)
+        ? offerApp.offer_letters[offerApp.offer_letters.length - 1]
+        : offerApp.offer_letters)
+    : null;
 
   return (
     <PortalLayout title="Student Dashboard" roleLabel="Student">
@@ -48,6 +66,41 @@ export const StudentDashboardPage = () => {
             <GraduationCap className="w-6 h-6" />
           </div>
         </div>
+
+        {/* Compact Offer Letter Notification Card */}
+        {offerRecord && (
+          <div className="bg-white p-5 rounded-xl border border-[#C5E3CC] bg-[#F8FAF9] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-[#EAF4EC] text-[#2F8F46] shrink-0 mt-0.5">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#18201B]">
+                    {offerRecord.verification_status === 'TPO_VERIFIED' ? '✅ Offer Letter Verified' : '🎉 Offer Letter Received'}
+                  </h3>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                    offerRecord.verification_status === 'TPO_VERIFIED'
+                      ? 'bg-[#EAF4EC] text-[#1F6B32] border border-[#C5E3CC]'
+                      : 'bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A]'
+                  }`}>
+                    {offerRecord.verification_status === 'TPO_VERIFIED' ? 'TPO VERIFIED' : 'Awaiting TPO Verification'}
+                  </span>
+                </div>
+                <p className="text-xs text-[#66706A] mt-1">
+                  {offerApp?.internship_postings?.companies?.company_name || 'Host Company'} has provided your internship offer letter for <strong className="text-[#18201B]">{offerApp?.internship_postings?.title || 'Internship Position'}</strong>.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              to="/student/applications"
+              className="px-4 py-2 bg-[#2F8F46] hover:bg-[#1F6B32] text-white text-xs font-bold rounded-xl shadow-xs transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>{offerRecord.verification_status === 'TPO_VERIFIED' ? 'View Verified Offer' : 'View Offer'}</span>
+            </Link>
+          </div>
+        )}
 
         {/* Assigned Faculty Mentor Card (Phase 5 Feature) */}
         {assignedFaculty ? (
