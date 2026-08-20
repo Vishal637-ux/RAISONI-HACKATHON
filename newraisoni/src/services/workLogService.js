@@ -145,6 +145,14 @@ export const workLogService = {
   async getCompanyWorkLogs(companyUserId) {
     if (!companyUserId) return [];
     try {
+      const { data: mentor } = await supabase
+        .from('company_mentors')
+        .select('company_id')
+        .eq('user_id', companyUserId)
+        .maybeSingle();
+
+      if (!mentor?.company_id) return [];
+
       const { data: logs, error } = await supabase
         .from('work_logs')
         .select(`
@@ -154,17 +162,32 @@ export const workLogService = {
             internship_title,
             student_id,
             company_id,
-            companies:company_id (id, company_name),
-            users:student_id (id, full_name, email)
+            companies:company_id (id, company_name)
           )
         `)
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
-      return logs || [];
+      const compLogs = (logs || []).filter((l) => l.internships?.company_id === mentor.company_id);
+      if (compLogs.length === 0) return [];
+
+      const studentIds = [...new Set(compLogs.map((l) => l.internships?.student_id).filter(Boolean))];
+      const { data: userRows } = await supabase
+        .from('users')
+        .select('id, full_name, email')
+        .in('id', studentIds);
+
+      const userMap = new Map((userRows || []).map((u) => [u.id, u]));
+      compLogs.forEach((l) => {
+        if (l.internships) {
+          l.internships.users = userMap.get(l.internships.student_id) || { full_name: 'Student Intern', email: '' };
+        }
+      });
+
+      return compLogs;
     } catch (err) {
       console.error('workLogService.getCompanyWorkLogs error:', err.message || err);
-      throw err;
+      return [];
     }
   },
 };
