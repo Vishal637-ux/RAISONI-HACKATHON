@@ -28,37 +28,37 @@ export const progressService = {
 
     if (intErr || !internship) return null;
 
-    let period;
+    // 1. Resolve student's true internship start date
+    let intStart = internship.start_date ? new Date(internship.start_date) : null;
 
-    if (typeUpper === 'OVERALL') {
-      let intStart = internship.start_date ? new Date(internship.start_date) : null;
+    if (!intStart) {
+      const { data: firstAtt } = await supabase
+        .from('attendance')
+        .select('attendance_date, created_at')
+        .eq('internship_id', internshipId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
 
-      if (!intStart) {
-        const { data: firstAtt } = await supabase
-          .from('attendance')
-          .select('attendance_date, created_at')
-          .eq('internship_id', internshipId)
-          .order('created_at', { ascending: true })
-          .limit(1)
-          .maybeSingle();
-
-        if (firstAtt?.attendance_date) {
-          intStart = new Date(firstAtt.attendance_date);
-        } else if (firstAtt?.created_at) {
-          intStart = new Date(firstAtt.created_at);
-        } else if (internship.created_at) {
-          intStart = new Date(internship.created_at);
-        } else {
-          intStart = new Date();
-        }
+      if (firstAtt?.attendance_date) {
+        intStart = new Date(firstAtt.attendance_date);
+      } else if (firstAtt?.created_at) {
+        intStart = new Date(firstAtt.created_at);
+      } else if (internship.created_at) {
+        intStart = new Date(internship.created_at);
+      } else {
+        intStart = new Date();
       }
+    }
 
+    // 2. Determine target period window
+    let period;
+    if (typeUpper === 'OVERALL') {
       let intEnd = internship.end_date ? new Date(internship.end_date) : null;
       if (!intEnd) {
         intEnd = new Date(intStart);
         intEnd.setMonth(intEnd.getMonth() + 3);
       }
-
       period = {
         periodKey: 'OVERALL',
         startDate: intStart,
@@ -72,8 +72,8 @@ export const progressService = {
 
     if (!period) return null;
 
-    // Benchmark effective start & end
-    const effectiveStart = period.startDate;
+    // 3. Benchmark effective start & end (internship start date takes precedence over month start)
+    const effectiveStart = intStart > period.startDate ? intStart : period.startDate;
     const now = new Date();
     const effectiveEnd = now < period.endDate ? now : period.endDate;
 
