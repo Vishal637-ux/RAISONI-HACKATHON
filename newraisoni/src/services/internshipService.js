@@ -588,9 +588,19 @@ export const internshipService = {
         .eq('student_id', studentId)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching student master internship:', error.message);
-        throw error;
+      if (data && data.faculty_mentors && !data.faculty_mentors.users?.email) {
+        const facultyUserId = data.faculty_mentors.user_id;
+        if (facultyUserId) {
+          const { data: fUserRow } = await supabase
+            .from('users')
+            .select('id, full_name, email, phone')
+            .eq('id', facultyUserId)
+            .maybeSingle();
+
+          if (fUserRow) {
+            data.faculty_mentors.users = fUserRow;
+          }
+        }
       }
 
       return data;
