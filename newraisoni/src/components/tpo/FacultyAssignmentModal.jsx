@@ -18,22 +18,33 @@ export const FacultyAssignmentModal = ({ internship, isOpen, onClose, onAssignme
         setLoading(true);
         setErrorMsg('');
         const deptId = internship.student_profile?.department_id || null;
+        const studentDeptName = (internship.student_profile?.departments?.department_name || internship.student_profile?.department || '').toLowerCase();
 
-        // Fetch department-matched faculty mentors
-        let mentors = await facultyService.getEligibleFacultyMentors(deptId);
+        // Fetch all registered faculty mentors
+        const allMentors = await facultyService.getEligibleFacultyMentors(null);
 
-        // Fallback: If no department-matched mentors, load all faculty mentors
-        if (!mentors || mentors.length === 0) {
-          mentors = await facultyService.getEligibleFacultyMentors(null);
-        }
+        // Sort & prioritize department-matched mentors first
+        const sortedMentors = [...allMentors].sort((a, b) => {
+          const aDeptId = a.department_id;
+          const bDeptId = b.department_id;
+          const aDeptName = (a.departments?.department_name || a.department || '').toLowerCase();
+          const bDeptName = (b.departments?.department_name || b.department || '').toLowerCase();
 
-        setFacultyMentors(mentors);
+          const aMatch = (deptId && aDeptId === deptId) || (studentDeptName && (aDeptName.includes(studentDeptName) || studentDeptName.includes(aDeptName)));
+          const bMatch = (deptId && bDeptId === deptId) || (studentDeptName && (bDeptName.includes(studentDeptName) || studentDeptName.includes(bDeptName)));
 
-        // Pre-select currently assigned faculty if present
+          if (aMatch && !bMatch) return -1;
+          if (!aMatch && bMatch) return 1;
+          return 0;
+        });
+
+        setFacultyMentors(sortedMentors);
+
+        // Pre-select currently assigned faculty if present, or top recommended faculty
         if (internship.faculty_id) {
           setSelectedFacultyId(internship.faculty_id);
-        } else if (mentors.length > 0) {
-          setSelectedFacultyId(mentors[0].id);
+        } else if (sortedMentors.length > 0) {
+          setSelectedFacultyId(sortedMentors[0].id);
         }
       } catch (err) {
         setErrorMsg('Failed to load eligible faculty mentors list.');
@@ -165,9 +176,12 @@ export const FacultyAssignmentModal = ({ internship, isOpen, onClose, onAssignme
                 {facultyMentors.map((faculty) => {
                   const fUser = faculty.users || {};
                   const fDept = faculty.departments?.department_name || faculty.department || 'Faculty';
+                  const studentDeptName = (studentProfile.departments?.department_name || studentProfile.department || '').toLowerCase();
+                  const isMatched = (studentProfile.department_id && faculty.department_id === studentProfile.department_id) ||
+                                    (studentDeptName && fDept.toLowerCase().includes(studentDeptName));
                   return (
                     <option key={faculty.id} value={faculty.id}>
-                      {fUser.full_name || fUser.email} — {fDept} ({faculty.designation || 'Faculty Mentor'})
+                      {isMatched ? '✓ [Recommended — Same Department] ' : ''}{fUser.full_name || fUser.email} — {fDept} ({faculty.designation || 'Faculty Mentor'})
                     </option>
                   );
                 })}
