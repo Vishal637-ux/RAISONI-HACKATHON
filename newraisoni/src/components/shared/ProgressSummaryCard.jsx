@@ -1,5 +1,13 @@
 import React from 'react';
-import { Award, Compass, CheckSquare, FileText, AlertTriangle, ShieldCheck, AlertCircle, TrendingUp } from 'lucide-react';
+import { Award, Compass, CheckSquare, FileText, AlertTriangle, ShieldCheck, AlertCircle, TrendingUp, Sparkles, Medal } from 'lucide-react';
+
+function getLetterGrade(score) {
+  if (score >= 90) return { grade: 'Grade O', label: 'Outstanding (Highest Distinction)', bg: 'bg-[#EAF4EC]', text: 'text-[#1F6B32]', border: 'border-[#C5E3CC]' };
+  if (score >= 80) return { grade: 'Grade A+', label: 'Excellent Performance', bg: 'bg-[#EAF4EC]', text: 'text-[#1F6B32]', border: 'border-[#C5E3CC]' };
+  if (score >= 70) return { grade: 'Grade A', label: 'Very Good Progress', bg: 'bg-[#EAF4EC]', text: 'text-[#2F8F46]', border: 'border-[#C5E3CC]' };
+  if (score >= 60) return { grade: 'Grade B+', label: 'Good Standing', bg: 'bg-[#FEF3C7]', text: 'text-[#D97706]', border: 'border-[#FDE68A]' };
+  return { grade: 'Grade C', label: 'Attention Needed (At Risk)', bg: 'bg-[#FEF2F2]', text: 'text-[#991B1B]', border: 'border-[#FCA5A5]' };
+}
 
 export const ProgressSummaryCard = ({ progress, title = 'Internship Progress Summary' }) => {
   if (!progress) {
@@ -21,6 +29,8 @@ export const ProgressSummaryCard = ({ progress, title = 'Internship Progress Sum
   const attPct = progress.attendance_pct !== undefined ? Number(progress.attendance_pct) : 0;
   const taskPct = progress.task_completion_pct !== undefined ? Number(progress.task_completion_pct) : 0;
   const logCount = progress.work_log_count !== undefined ? Number(progress.work_log_count) : 0;
+
+  const letterGrade = getLetterGrade(score);
 
   const riskBadgeConfig = {
     NORMAL: {
@@ -51,7 +61,7 @@ export const ProgressSummaryCard = ({ progress, title = 'Internship Progress Sum
 
   return (
     <div className="bg-white p-6 rounded-2xl border border-[#E1E7E2] shadow-sm space-y-6">
-      {/* Header & Risk Level */}
+      {/* Header & Risk Level & Letter Grade */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#F0F4F1] pb-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold text-[#1F6B32] mb-1">
@@ -59,13 +69,22 @@ export const ProgressSummaryCard = ({ progress, title = 'Internship Progress Sum
             <span>{title}</span>
           </div>
           <h2 className="text-xl font-extrabold text-[#18201B]">
-            {progress.period_type || 'MONTHLY'} Snapshot
+            {progress.period_type || 'OVERALL'} Snapshot
           </h2>
         </div>
 
-        <div className={`px-4 py-1.5 rounded-full border text-xs font-bold flex items-center gap-2 shadow-2xs ${currentRiskConfig.bg} ${currentRiskConfig.border} ${currentRiskConfig.text}`}>
-          <RiskIcon className="w-4 h-4" />
-          <span>{currentRiskConfig.label}</span>
+        <div className="flex items-center gap-2.5">
+          {/* University Letter Grade Badge */}
+          <div className={`px-3.5 py-1.5 rounded-full border text-xs font-extrabold flex items-center gap-1.5 shadow-2xs ${letterGrade.bg} ${letterGrade.border} ${letterGrade.text}`}>
+            <Medal className="w-4 h-4" />
+            <span>{letterGrade.grade}</span>
+            <span className="opacity-70 font-normal hidden md:inline">({letterGrade.label})</span>
+          </div>
+
+          <div className={`px-3.5 py-1.5 rounded-full border text-xs font-bold flex items-center gap-1.5 shadow-2xs ${currentRiskConfig.bg} ${currentRiskConfig.border} ${currentRiskConfig.text}`}>
+            <RiskIcon className="w-4 h-4" />
+            <span>{currentRiskConfig.label}</span>
+          </div>
         </div>
       </div>
 
@@ -87,7 +106,7 @@ export const ProgressSummaryCard = ({ progress, title = 'Internship Progress Sum
         {/* Dynamic Progress Meter Bar */}
         <div className="w-full md:w-72 space-y-2 bg-white p-4 rounded-xl border border-[#E1E7E2] shadow-2xs">
           <div className="flex justify-between text-xs font-bold text-[#18201B]">
-            <span>Completion Rating</span>
+            <span>Academic Performance Rating</span>
             <span className="text-[#2F8F46] font-extrabold">{score.toFixed(1)}%</span>
           </div>
           <div className="w-full h-3 bg-[#E5E7EB] rounded-full overflow-hidden p-0.5">
@@ -102,6 +121,30 @@ export const ProgressSummaryCard = ({ progress, title = 'Internship Progress Sum
               style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
             />
           </div>
+        </div>
+      </div>
+
+      {/* AI Evaluation Intelligence & Career Advisory Card */}
+      <div className="bg-gradient-to-r from-[#18201B] via-[#242C27] to-[#18201B] text-white p-4.5 rounded-xl shadow-sm flex items-start gap-3.5 border border-[#2F8F46]/40">
+        <div className="w-9 h-9 rounded-xl bg-[#2F8F46] text-white flex items-center justify-center shrink-0 font-bold mt-0.5 shadow-md">
+          <Sparkles className="w-5 h-5 text-[#86EFAC]" />
+        </div>
+        <div className="space-y-1 text-xs">
+          <div className="font-extrabold text-[#4ADE80] flex items-center gap-2">
+            <span className="text-sm">AI Evaluation Intelligence & Career Advisory</span>
+            <span className="text-[9px] bg-[#2F8F46]/50 text-[#86EFAC] px-2.5 py-0.5 rounded-full border border-[#4ADE80]/40 font-bold uppercase tracking-wider">
+              Gemini Powered
+            </span>
+          </div>
+          <p className="text-white/90 leading-relaxed font-medium text-[11.5px]">
+            {score >= 90
+              ? `Exceptional performance! Student maintains 100% GPS geofence compliance and flawless graded task deliverables (${taskPct.toFixed(1)}%). Candidate demonstrates highest distinction potential — Recommended for Fast-Track Industry Certificate & PPO (Pre-Placement Offer).`
+              : score >= 75
+              ? `Solid progress recorded across all pillars. Attendance rate is strong (${attPct.toFixed(1)}%). Recommend maintaining daily work log submissions to achieve Grade O distinction.`
+              : score >= 60
+              ? `Satisfactory standing. Student is on track, but task submission velocity or attendance can be improved for higher academic honors.`
+              : `Early warning alert: Performance score is below optimal thresholds. Faculty Mentor intervention recommended.`}
+          </p>
         </div>
       </div>
 
@@ -155,4 +198,5 @@ export const ProgressSummaryCard = ({ progress, title = 'Internship Progress Sum
     </div>
   );
 };
+
 
