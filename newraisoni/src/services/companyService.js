@@ -107,7 +107,7 @@ export const companyService = {
         throw error;
       }
 
-      // Fetch student profiles for detailed academic information
+      // Fetch student profiles & user details for detailed applicant information
       if (data && data.length > 0) {
         const studentIds = [...new Set(data.map((app) => app.student_id))];
         const { data: studentProfiles } = await supabase
@@ -115,15 +115,29 @@ export const companyService = {
           .select('user_id, roll_number, department, year, semester, cgpa, skills, resume_url')
           .in('user_id', studentIds);
 
+        const { data: userRows } = await supabase
+          .from('users')
+          .select('id, full_name, email, phone')
+          .in('id', studentIds);
+
         const profileMap = new Map();
         if (studentProfiles) {
           studentProfiles.forEach((sp) => profileMap.set(sp.user_id, sp));
         }
 
-        return data.map((app) => ({
-          ...app,
-          student_profile: profileMap.get(app.student_id) || null,
-        }));
+        const userMap = new Map();
+        if (userRows) {
+          userRows.forEach((u) => userMap.set(u.id, u));
+        }
+
+        return data.map((app) => {
+          const userDetail = app.users?.full_name ? app.users : (userMap.get(app.student_id) || app.users);
+          return {
+            ...app,
+            users: userDetail,
+            student_profile: profileMap.get(app.student_id) || null,
+          };
+        });
       }
 
       return data || [];
