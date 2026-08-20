@@ -8,8 +8,8 @@ import { Award, RefreshCw, AlertCircle } from 'lucide-react';
 
 export const StudentProgressPage = () => {
   const { user } = useAuth();
-  const [progressData, setProgressData] = useState({ weekly: [], monthly: [], current: null });
-  const [activeTab, setActiveTab] = useState('MONTHLY');
+  const [progressData, setProgressData] = useState({ overall: null, weekly: [], monthly: [], current: null });
+  const [activeTab, setActiveTab] = useState('OVERALL');
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -33,7 +33,12 @@ export const StudentProgressPage = () => {
   }, [user]);
 
   const activeHistory = activeTab === 'WEEKLY' ? progressData.weekly : progressData.monthly;
-  const currentSnapshot = activeHistory && activeHistory.length > 0 ? activeHistory[0] : progressData.current;
+  const currentSnapshot =
+    activeTab === 'OVERALL'
+      ? progressData.overall || progressData.current
+      : activeTab === 'WEEKLY'
+      ? progressData.weekly[0] || progressData.current
+      : progressData.monthly[0] || progressData.current;
 
   return (
     <PortalLayout title="Internship Progress Aggregator" roleLabel="Student Candidate">
@@ -45,7 +50,7 @@ export const StudentProgressPage = () => {
               <Award className="w-4 h-4" />
               <span>Evidence-Driven Aggregator</span>
             </div>
-            <h2 className="text-xl font-bold text-[#18201B]">My Weekly & Monthly Progress</h2>
+            <h2 className="text-xl font-bold text-[#18201B]">Overall, Monthly & Weekly Progress</h2>
             <p className="text-xs text-[#66706A] mt-1">
               Real-time progress score compiled from attendance check-ins (40%), task completion & grades (40%), and work logs (20%).
             </p>
@@ -53,10 +58,20 @@ export const StudentProgressPage = () => {
 
           <div className="flex items-center gap-3">
             {/* Tab Selector */}
-            <div className="flex items-center bg-[#F8FAF9] p-1 rounded-lg border border-[#E1E7E2]">
+            <div className="flex items-center bg-[#F8FAF9] p-1 rounded-xl border border-[#E1E7E2]">
+              <button
+                onClick={() => setActiveTab('OVERALL')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'OVERALL'
+                    ? 'bg-[#2F8F46] text-white shadow-xs'
+                    : 'text-[#66706A] hover:text-[#18201B]'
+                }`}
+              >
+                Overall
+              </button>
               <button
                 onClick={() => setActiveTab('MONTHLY')}
-                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   activeTab === 'MONTHLY'
                     ? 'bg-[#2F8F46] text-white shadow-xs'
                     : 'text-[#66706A] hover:text-[#18201B]'
@@ -66,7 +81,7 @@ export const StudentProgressPage = () => {
               </button>
               <button
                 onClick={() => setActiveTab('WEEKLY')}
-                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   activeTab === 'WEEKLY'
                     ? 'bg-[#2F8F46] text-white shadow-xs'
                     : 'text-[#66706A] hover:text-[#18201B]'
@@ -100,10 +115,25 @@ export const StudentProgressPage = () => {
         ) : (
           <div className="space-y-6">
             {/* Main Progress Summary Card */}
-            <ProgressSummaryCard progress={currentSnapshot} title={`${activeTab} Progress Snapshot`} />
+            <ProgressSummaryCard
+              progress={currentSnapshot}
+              title={
+                activeTab === 'OVERALL'
+                  ? 'Full Internship Progress Summary'
+                  : `${activeTab} Progress Snapshot`
+              }
+            />
 
             {/* Performance Trend Chart */}
-            <ProgressChart history={activeHistory} title={`${activeTab} Progress Score Trend`} periodType={activeTab} />
+            <ProgressChart
+              history={activeHistory}
+              title={
+                activeTab === 'OVERALL'
+                  ? 'Full Internship Monthly Progress Trend'
+                  : `${activeTab} Progress Score Trend`
+              }
+              periodType={activeTab === 'WEEKLY' ? 'WEEKLY' : 'MONTHLY'}
+            />
           </div>
         )}
       </div>

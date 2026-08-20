@@ -18,47 +18,62 @@ export const progressService = {
     if (!internshipId) return null;
 
     const typeUpper = (periodType || 'MONTHLY').toUpperCase();
-    const period = typeUpper === 'WEEKLY' ? getISOWeekRange(targetDateInput) : getISOMonthRange(targetDateInput);
-
-    if (!period) return null;
 
     // Fetch master internship record
     const { data: internship, error: intErr } = await supabase
       .from('internships')
-      .select('id, student_id, start_date, status, created_at')
+      .select('id, student_id, start_date, end_date, status, created_at')
       .eq('id', internshipId)
       .single();
 
     if (intErr || !internship) return null;
 
-    // Resolve true start date:
-    // 1. Explicit start_date if configured
-    // 2. Earliest attendance record date
-    // 3. Internship created_at date
-    let intStart = internship.start_date ? new Date(internship.start_date) : null;
+    let period;
 
-    if (!intStart) {
-      const { data: firstAtt } = await supabase
-        .from('attendance')
-        .select('attendance_date, created_at')
-        .eq('internship_id', internshipId)
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+    if (typeUpper === 'OVERALL') {
+      let intStart = internship.start_date ? new Date(internship.start_date) : null;
 
-      if (firstAtt?.attendance_date) {
-        intStart = new Date(firstAtt.attendance_date);
-      } else if (firstAtt?.created_at) {
-        intStart = new Date(firstAtt.created_at);
-      } else if (internship.created_at) {
-        intStart = new Date(internship.created_at);
-      } else {
-        intStart = period.startDate;
+      if (!intStart) {
+        const { data: firstAtt } = await supabase
+          .from('attendance')
+          .select('attendance_date, created_at')
+          .eq('internship_id', internshipId)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (firstAtt?.attendance_date) {
+          intStart = new Date(firstAtt.attendance_date);
+        } else if (firstAtt?.created_at) {
+          intStart = new Date(firstAtt.created_at);
+        } else if (internship.created_at) {
+          intStart = new Date(internship.created_at);
+        } else {
+          intStart = new Date();
+        }
       }
+
+      let intEnd = internship.end_date ? new Date(internship.end_date) : null;
+      if (!intEnd) {
+        intEnd = new Date(intStart);
+        intEnd.setMonth(intEnd.getMonth() + 3);
+      }
+
+      period = {
+        periodKey: 'OVERALL',
+        startDate: intStart,
+        endDate: intEnd,
+      };
+    } else if (typeUpper === 'WEEKLY') {
+      period = getISOWeekRange(targetDateInput);
+    } else {
+      period = getISOMonthRange(targetDateInput);
     }
 
+    if (!period) return null;
+
     // Benchmark effective start & end
-    const effectiveStart = intStart > period.startDate ? intStart : period.startDate;
+    const effectiveStart = period.startDate;
     const now = new Date();
     const effectiveEnd = now < period.endDate ? now : period.endDate;
 
@@ -72,7 +87,7 @@ export const progressService = {
       .from('attendance')
       .select('id')
       .eq('internship_id', internshipId)
-      .gte('created_at', isoStartStr)
+      .gte('created_at', typeUpper === 'OVERALL' ? '2020-01-01T00:00:00.000Z' : isoStartStr)
       .lte('created_at', isoEndStr);
 
     const presentCount = attRows ? attRows.length : 0;
@@ -82,7 +97,7 @@ export const progressService = {
       .from('work_logs')
       .select('id')
       .eq('internship_id', internshipId)
-      .gte('submitted_at', isoStartStr)
+      .gte('submitted_at', typeUpper === 'OVERALL' ? '2020-01-01T00:00:00.000Z' : isoStartStr)
       .lte('submitted_at', isoEndStr);
 
     const workLogCount = logRows ? logRows.length : 0;
@@ -92,7 +107,7 @@ export const progressService = {
       .from('tasks')
       .select('id, created_at')
       .eq('internship_id', internshipId)
-      .gte('created_at', isoStartStr)
+      .gte('created_at', typeUpper === 'OVERALL' ? '2020-01-01T00:00:00.000Z' : isoStartStr)
       .lte('created_at', isoEndStr);
 
     const assignedTasksCount = taskRows ? taskRows.length : 0;
@@ -213,7 +228,8 @@ export const progressService = {
       let weekly = (rows || []).filter((r) => r.period_type === 'WEEKLY');
       let monthly = (rows || []).filter((r) => r.period_type === 'MONTHLY');
 
-      // Always calculate live real-time snapshots for current periods
+      // Always calculate live real-time snapshots for overall, current week, and current month
+      const liveOverall = await this.calculateLiveProgress(internship.id, 'OVERALL');
       const liveWeekly = await this.calculateLiveProgress(internship.id, 'WEEKLY');
       const liveMonthly = await this.calculateLiveProgress(internship.id, 'MONTHLY');
 
@@ -235,9 +251,9 @@ export const progressService = {
         monthly = [liveMonthly, ...pastMonthly];
       }
 
-      const current = monthly.length > 0 ? monthly[0] : weekly.length > 0 ? weekly[0] : null;
+      const current = liveOverall || (monthly.length > 0 ? monthly[0] : weekly.length > 0 ? weekly[0] : null);
 
-      return { weekly, monthly, current };
+      return { overall: liveOverall, weekly, monthly, current };
     } catch (err) {
       console.error('progressService.getStudentProgressHistory error:', err.message || err);
       throw err;
