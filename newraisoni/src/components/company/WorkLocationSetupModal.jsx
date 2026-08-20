@@ -79,14 +79,23 @@ export const WorkLocationSetupModal = ({ internship, companyUserId, isOpen, onCl
   };
 
   const handleActivate = async () => {
+    if (!formData.work_location || !formData.latitude || !formData.longitude) {
+      setErrorMsg('Please enter Location title, Latitude, and Longitude before activating.');
+      return;
+    }
+
     try {
       setActivating(true);
       setErrorMsg('');
       setSuccessMsg('');
 
+      // 1. Auto-save work location GPS coordinates to DB first
+      await companyService.setupWorkLocation(companyUserId, internship.id, formData);
+
+      // 2. Activate internship (FACULTY_ASSIGNED -> ACTIVE)
       await companyService.activateInternship(internship.id, companyUserId);
 
-      setSuccessMsg('Internship Activated Successfully! Status updated to ACTIVE.');
+      setSuccessMsg('Work Location Saved & Internship Activated Successfully! Status updated to ACTIVE.');
       setTimeout(() => {
         onClose();
         if (onSetupComplete) onSetupComplete();
