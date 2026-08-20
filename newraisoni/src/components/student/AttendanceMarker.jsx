@@ -9,6 +9,19 @@ export const AttendanceMarker = ({ internship, onAttendanceMarked }) => {
   const [successMsg, setSuccessMsg] = useState('');
   const [todayLog, setTodayLog] = useState(null);
   const [currentCoords, setCurrentCoords] = useState(null);
+  const [checkOutTime, setCheckOutTime] = useState(null);
+
+  // Load company-configured work hours + today's checkout from localStorage
+  const workHours = internship?.id
+    ? JSON.parse(localStorage.getItem(`work_hours_${internship.id}`) || 'null')
+    : null;
+
+  const todayKey = `checkout_${internship?.id}_${new Date().toISOString().split('T')[0]}`;
+
+  useEffect(() => {
+    const savedCheckout = localStorage.getItem(todayKey);
+    if (savedCheckout) setCheckOutTime(savedCheckout);
+  }, [todayKey]);
 
   useEffect(() => {
     async function checkTodayAttendance() {
@@ -147,6 +160,12 @@ export const AttendanceMarker = ({ internship, onAttendanceMarked }) => {
             {(internship.allowed_radius_km || 0.5) * 1000} meters ({(internship.allowed_radius_km || 0.5)} km)
           </span>
         </div>
+        {workHours && (
+          <div className="flex items-center justify-between text-[#66706A] border-t border-[#E1E7E2] pt-1.5 mt-1">
+            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Expected Hours:</span>
+            <span className="font-bold text-[#18201B]">{workHours.check_in_time} – {workHours.check_out_time}</span>
+          </div>
+        )}
       </div>
 
       {/* Feedback Messages */}
@@ -166,7 +185,7 @@ export const AttendanceMarker = ({ internship, onAttendanceMarked }) => {
 
       {/* Today's Log Card */}
       {todayLog ? (
-        <div className={`p-4 rounded-xl border space-y-2 text-xs ${
+        <div className={`p-4 rounded-xl border space-y-3 text-xs ${
           todayLog.geofence_status === 'VERIFIED_GEOFENCE'
             ? 'bg-[#EAF4EC] border-[#C5E3CC] text-[#1F6B32]'
             : 'bg-[#FEF3C7] border-[#FDE68A] text-[#D97706]'
@@ -182,6 +201,38 @@ export const AttendanceMarker = ({ internship, onAttendanceMarked }) => {
             </span>
             <span>{todayLog.attendance_date}</span>
           </div>
+
+          {/* Check-in / Check-out Time Row */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-white/60 rounded-lg p-2 text-center">
+              <div className="text-[10px] font-semibold text-[#66706A] mb-0.5">Check-In Time</div>
+              <div className="font-bold text-[#1F6B32] flex items-center justify-center gap-1">
+                <Clock className="w-3 h-3" />
+                {new Date(todayLog.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+              </div>
+            </div>
+            <div className="bg-white/60 rounded-lg p-2 text-center">
+              <div className="text-[10px] font-semibold text-[#66706A] mb-0.5">Check-Out Time</div>
+              {checkOutTime ? (
+                <div className="font-bold text-[#1F6B32] flex items-center justify-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {checkOutTime}
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    localStorage.setItem(todayKey, now);
+                    setCheckOutTime(now);
+                  }}
+                  className="text-[11px] font-bold bg-[#2F8F46] hover:bg-[#1F6B32] text-white px-2 py-1 rounded-md transition-colors"
+                >
+                  Check Out
+                </button>
+              )}
+            </div>
+          </div>
+
           <p className="text-[11px]">
             Geofence Verdict: <strong className="uppercase">{todayLog.geofence_status}</strong> • Distance from site:{' '}
             <strong>{todayLog.distance_meters} meters</strong>

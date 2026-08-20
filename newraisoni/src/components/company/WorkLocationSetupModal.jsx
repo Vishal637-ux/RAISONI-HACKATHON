@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Navigation, AlertCircle, CheckCircle2, Building2, PlayCircle } from 'lucide-react';
+import { MapPin, Navigation, AlertCircle, CheckCircle2, Building2, PlayCircle, Clock } from 'lucide-react';
 import { companyService } from '../../services/companyService';
 
 export const WorkLocationSetupModal = ({ internship, companyUserId, isOpen, onClose, onSetupComplete }) => {
@@ -9,6 +9,8 @@ export const WorkLocationSetupModal = ({ internship, companyUserId, isOpen, onCl
     latitude: '',
     longitude: '',
     allowed_radius_km: '0.5',
+    check_in_time: '09:00',
+    check_out_time: '18:00',
   });
 
   const [loading, setLoading] = useState(false);
@@ -18,12 +20,16 @@ export const WorkLocationSetupModal = ({ internship, companyUserId, isOpen, onCl
 
   useEffect(() => {
     if (internship) {
+      // Load saved work hours from localStorage (no DB column needed)
+      const savedHours = JSON.parse(localStorage.getItem(`work_hours_${internship.id}`) || 'null');
       setFormData({
         work_location: internship.work_location || '',
         address: internship.address || '',
         latitude: internship.latitude !== null && internship.latitude !== undefined ? String(internship.latitude) : '',
         longitude: internship.longitude !== null && internship.longitude !== undefined ? String(internship.longitude) : '',
         allowed_radius_km: internship.allowed_radius_km ? String(internship.allowed_radius_km) : '0.5',
+        check_in_time: savedHours?.check_in_time || '09:00',
+        check_out_time: savedHours?.check_out_time || '18:00',
       });
       setErrorMsg('');
       setSuccessMsg('');
@@ -67,6 +73,12 @@ export const WorkLocationSetupModal = ({ internship, companyUserId, isOpen, onCl
 
       await companyService.setupWorkLocation(companyUserId, internship.id, formData);
 
+      // Save work hours to localStorage
+      localStorage.setItem(`work_hours_${internship.id}`, JSON.stringify({
+        check_in_time: formData.check_in_time,
+        check_out_time: formData.check_out_time,
+      }));
+
       setSuccessMsg('Work location & geofence configured successfully!');
       setTimeout(() => {
         if (onSetupComplete) onSetupComplete();
@@ -91,6 +103,12 @@ export const WorkLocationSetupModal = ({ internship, companyUserId, isOpen, onCl
 
       // 1. Auto-save work location GPS coordinates to DB first
       await companyService.setupWorkLocation(companyUserId, internship.id, formData);
+
+      // Save work hours to localStorage
+      localStorage.setItem(`work_hours_${internship.id}`, JSON.stringify({
+        check_in_time: formData.check_in_time,
+        check_out_time: formData.check_out_time,
+      }));
 
       // 2. Activate internship (FACULTY_ASSIGNED -> ACTIVE)
       await companyService.activateInternship(internship.id, companyUserId);
@@ -215,6 +233,35 @@ export const WorkLocationSetupModal = ({ internship, companyUserId, isOpen, onCl
                 className="w-full px-3 py-1.5 border border-[#E1E7E2] rounded-lg text-xs font-medium text-right focus:outline-none focus:border-[#2F8F46]"
               />
             </div>
+          </div>
+
+          {/* Work Hours — Check-In & Check-Out Time */}
+          <div className="border-t border-[#F0F4F1] pt-3">
+            <label className="block font-bold text-[#18201B] mb-2 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-[#2F8F46]" />
+              Work Hours (Check-In & Check-Out Time)
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-[#66706A] mb-1">Check-In Time</label>
+                <input
+                  type="time"
+                  value={formData.check_in_time}
+                  onChange={(e) => setFormData({ ...formData, check_in_time: e.target.value })}
+                  className="w-full px-3 py-2 border border-[#E1E7E2] rounded-lg text-xs font-medium focus:outline-none focus:border-[#2F8F46]"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-[#66706A] mb-1">Check-Out Time</label>
+                <input
+                  type="time"
+                  value={formData.check_out_time}
+                  onChange={(e) => setFormData({ ...formData, check_out_time: e.target.value })}
+                  className="w-full px-3 py-2 border border-[#E1E7E2] rounded-lg text-xs font-medium focus:outline-none focus:border-[#2F8F46]"
+                />
+              </div>
+            </div>
+            <p className="text-[10px] text-[#66706A] mt-1.5">Students will see these expected work hours on their attendance page.</p>
           </div>
 
           <div className="pt-2 flex items-center justify-between border-t border-[#F0F4F1]">
