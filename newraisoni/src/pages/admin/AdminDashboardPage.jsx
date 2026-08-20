@@ -142,6 +142,10 @@ export const AdminDashboardPage = () => {
     }
   };
 
+  useEffect(() => {
+    fetchAdminData();
+  }, []);
+
   const handleRoleChange = async (userId, newRole) => {
     try {
       setUpdatingUserId(userId);
