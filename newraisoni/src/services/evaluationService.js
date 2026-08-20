@@ -267,7 +267,14 @@ export const evaluationService = {
         try {
           const adminClient = createClient(
             'https://jseihmoupjkrptuwydyo.supabase.co',
-            'sb_publishable_SEEp28Op-JNAgKEZC82OTg_bPys1i1l'
+            'sb_publishable_SEEp28Op-JNAgKEZC82OTg_bPys1i1l',
+            {
+              auth: {
+                persistSession: false,
+                autoRefreshToken: false,
+                detectSessionInUrl: false,
+              },
+            }
           );
           await adminClient.auth.signInWithPassword({ email: 'admin@raisoni.edu', password: 'Password123!' });
 
