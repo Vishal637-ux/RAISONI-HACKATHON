@@ -33,8 +33,14 @@ export const EvaluationSummaryCard = ({ companyEval, facultyEval, dualAverage, t
           </div>
           <div>
             <div className="text-[10px] font-bold text-[#66706A] uppercase tracking-wider">Dual Evaluation Average</div>
-            <div className="text-lg font-extrabold text-[#18201B]">
-              {dualAverage !== null ? `${dualAverage.toFixed(2)} / 5.00` : 'Pending Both Evaluations'}
+            <div className="text-sm font-extrabold text-[#18201B]">
+              {dualAverage !== null 
+                ? `${dualAverage.toFixed(2)} / 5.00` 
+                : companyEval 
+                  ? `${Number(companyEval.overall_rating).toFixed(2)} / 5.00 (Awaiting Faculty)` 
+                  : facultyEval 
+                    ? `${Number(facultyEval.overall_rating).toFixed(2)} / 5.00 (Awaiting Company)` 
+                    : 'Pending Both Evaluations'}
             </div>
           </div>
         </div>
