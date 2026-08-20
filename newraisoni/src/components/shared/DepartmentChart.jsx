@@ -24,7 +24,8 @@ export const DepartmentChart = ({ data = [], title = 'Analytics Chart', dataKey 
             <XAxis dataKey={nameKey} tick={{ fontSize: 11, fill: '#66706A' }} />
             <YAxis tick={{ fontSize: 11, fill: '#66706A' }} allowDecimals={false} />
             <Tooltip
-              contentStyle={{ backgroundColor: '#18201B', color: '#FFF', borderRadius: '8px', fontSize: '12px' }}
+              cursor={false}
+              contentStyle={{ backgroundColor: '#18201B', color: '#FFF', borderRadius: '8px', fontSize: '12px', border: 'none' }}
             />
             <Bar dataKey={dataKey} radius={[6, 6, 0, 0]}>
               {data.map((entry, index) => (
