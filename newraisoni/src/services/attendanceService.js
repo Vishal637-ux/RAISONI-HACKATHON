@@ -218,8 +218,7 @@ export const attendanceService = {
             internship_title,
             student_id,
             company_id,
-            companies:company_id (id, company_name),
-            users:student_id (id, full_name, email)
+            companies:company_id (id, company_name)
           )
         `)
         .order('attendance_date', { ascending: false });

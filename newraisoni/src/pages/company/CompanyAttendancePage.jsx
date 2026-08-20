@@ -30,10 +30,30 @@ export const CompanyAttendancePage = () => {
         // Fetch internships for company directly
         const { data: intList } = await supabase
           .from('internships')
-          .select('*, users:student_id(full_name, email), faculty_mentors(id, designation, users(full_name))')
+          .select('*, faculty_mentors(id, designation, users(full_name))')
           .eq('company_id', companyMentor.company_id);
 
-        setInternships(intList || []);
+        if (intList && intList.length > 0) {
+          const studentIds = [...new Set(intList.map((i) => i.student_id).filter(Boolean))];
+          const { data: userRows } = await supabase
+            .from('users')
+            .select('id, full_name, email')
+            .in('id', studentIds);
+
+          const userMap = new Map();
+          if (userRows) {
+            userRows.forEach((u) => userMap.set(u.id, u));
+          }
+
+          const enrichedInternships = intList.map((i) => ({
+            ...i,
+            users: userMap.get(i.student_id) || i.users || { full_name: 'Student Intern', email: '' },
+          }));
+
+          setInternships(enrichedInternships);
+        } else {
+          setInternships([]);
+        }
 
         const attLogs = await attendanceService.getCompanyAttendance(user.id);
         setLogs(attLogs);
