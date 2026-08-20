@@ -62,6 +62,11 @@ export const PostingCreatePage = () => {
       return;
     }
 
+    if (company.status === 'SUSPENDED') {
+      setErrorMsg('Company partner account is currently suspended by College Administration. New posting creation is disabled.');
+      return;
+    }
+
     if (!formData.title.trim() || !formData.description.trim()) {
       setErrorMsg('Posting Title and Description are required.');
       return;
@@ -278,14 +283,22 @@ export const PostingCreatePage = () => {
 
                   <div>
                     <label className="block text-xs font-bold text-[#18201B] mb-1.5">Eligible Departments</label>
-                    <input
-                      type="text"
+                    <select
                       name="eligible_departments"
                       value={formData.eligible_departments}
                       onChange={handleChange}
-                      placeholder="e.g. Computer Science, Information Technology"
                       className="w-full px-3.5 py-2.5 rounded-lg border border-[#E1E7E2] text-sm text-[#18201B] focus:outline-none focus:border-[#2F8F46]"
-                    />
+                    >
+                      <option value="Computer Science, Information Technology, Electronics">Computer Science, IT & Electronics</option>
+                      <option value="All Departments">All Academic Departments</option>
+                      <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                      <option value="Information Technology">Information Technology</option>
+                      <option value="Electronics & Telecommunication">Electronics & Telecommunication</option>
+                      <option value="Civil Engineering">Civil Engineering</option>
+                      <option value="Mechanical Engineering">Mechanical Engineering</option>
+                      <option value="Data Science & Artificial Intelligence">Data Science & AI</option>
+                      <option value="Computer Science, Information Technology">Computer Science & IT</option>
+                    </select>
                   </div>
                 </div>
               </div>
