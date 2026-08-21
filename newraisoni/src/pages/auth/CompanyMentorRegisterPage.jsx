@@ -18,7 +18,7 @@ export const CompanyMentorRegisterPage = () => {
     email: '',
     password: '',
     phone: '',
-    designation: 'Senior Technical Lead',
+    designation: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -93,8 +93,8 @@ export const CompanyMentorRegisterPage = () => {
       return;
     }
 
-    if (!formData.fullName.trim() || !formData.email.trim() || !formData.password.trim()) {
-      setError('Full Name, Corporate Email, and Password are required.');
+    if (!formData.fullName.trim() || !formData.email.trim() || !formData.password.trim() || !formData.designation.trim()) {
+      setError('Full Name, Corporate Email, Password, and Designation are required.');
       return;
     }
 
